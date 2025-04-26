@@ -73,23 +73,29 @@ export function getAppSettings(): AppSettings {
     const settings = localStorage.getItem(STORAGE_KEYS.APP_SETTINGS);
     const parsedSettings = settings ? JSON.parse(settings) : DEFAULT_APP_SETTINGS;
     
+    // Ensure all required fields have defaults
+    const fullSettings = {
+      ...DEFAULT_APP_SETTINGS,
+      ...parsedSettings
+    };
+    
     // If encrypted API key exists, decrypt it
-    if (parsedSettings.encryptedApiKey && parsedSettings.apiKeyTimestamp) {
+    if (fullSettings.encryptedApiKey && fullSettings.apiKeyTimestamp) {
       const oneYearInMs = 365 * 24 * 60 * 60 * 1000;
       const currentTime = new Date().getTime();
       
-      if (currentTime - parsedSettings.apiKeyTimestamp > oneYearInMs) {
+      if (currentTime - fullSettings.apiKeyTimestamp > oneYearInMs) {
         // API key has expired, clear it
-        parsedSettings.apiKey = "";
-        delete parsedSettings.encryptedApiKey;
-        saveAppSettings(parsedSettings);
+        fullSettings.apiKey = "";
+        delete (fullSettings as any).encryptedApiKey;
+        saveAppSettings(fullSettings);
       } else {
         // Decrypt API key
-        parsedSettings.apiKey = decryptApiKey(parsedSettings.encryptedApiKey);
+        fullSettings.apiKey = decryptApiKey(fullSettings.encryptedApiKey);
       }
     }
     
-    return parsedSettings;
+    return fullSettings;
   } catch (error) {
     console.error("Error retrieving app settings from localStorage:", error);
     return DEFAULT_APP_SETTINGS;
@@ -98,17 +104,22 @@ export function getAppSettings(): AppSettings {
 
 export function saveAppSettings(settings: AppSettings): void {
   try {
-    const settingsToSave = { ...settings } as AppSettings & { encryptedApiKey?: string, apiKeyTimestamp?: number };
+    // Create a copy of settings that we can modify
+    const settingsToSave = { ...settings } as any;
     
     // If the API key is being updated, encrypt it and add a timestamp
     if (settings.apiKey) {
       settingsToSave.encryptedApiKey = encryptApiKey(settings.apiKey);
       settingsToSave.apiKeyTimestamp = new Date().getTime();
       
-      // For local storage safety, create a new object without the API key
-      const { apiKey, ...settingsWithoutApiKey } = settingsToSave;
-      localStorage.setItem(STORAGE_KEYS.APP_SETTINGS, JSON.stringify(settingsWithoutApiKey));
+      // Create a new object without the API key property for storage
+      const safeSettings = { ...settingsToSave };
+      delete safeSettings.apiKey; // Safe delete on any type
+      
+      localStorage.setItem(STORAGE_KEYS.APP_SETTINGS, JSON.stringify(safeSettings));
     } else {
+      // Make sure apiKey is not undefined
+      settingsToSave.apiKey = settingsToSave.apiKey || "";
       localStorage.setItem(STORAGE_KEYS.APP_SETTINGS, JSON.stringify(settingsToSave));
     }
     

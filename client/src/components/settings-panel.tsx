@@ -73,16 +73,15 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    const settingsValid = settingsForm.formState.isValid;
-    const childInfoValid = childInfoForm.formState.isValid;
+    // Always save regardless of validation state since all fields are optional
+    const settingsData = settingsForm.getValues();
+    const childInfoData = childInfoForm.getValues();
     
-    if (settingsValid) {
-      handleSaveSettings(settingsForm.getValues());
-    }
+    // Save settings
+    handleSaveSettings(settingsData);
     
-    if (childInfoValid) {
-      handleSaveChildInfo(childInfoForm.getValues());
-    }
+    // Save child info
+    handleSaveChildInfo(childInfoData);
   };
 
   if (!isOpen) return null;
