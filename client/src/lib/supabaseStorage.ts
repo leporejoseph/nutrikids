@@ -279,7 +279,8 @@ export async function getReportHistory(): Promise<ReportHistoryItem[]> {
 
 export async function saveReportToHistory(report: NutritionReport): Promise<void> {
   try {
-    const historyItem: ReportHistoryItem = {
+    // Create the history item with required fields
+    const historyItem = {
       id: report.id || crypto.randomUUID(),
       reportDate: report.reportDate || new Date().toISOString().split('T')[0],
       analysisDate: report.analysisDate || Date.now(),
