@@ -32,6 +32,12 @@ export default function Home() {
   const [isLoadDialogOpen, setIsLoadDialogOpen] = useState(false);
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
   const { toast } = useToast();
+  
+  // Check if selected date is today
+  const isToday = useMemo(() => {
+    const today = format(new Date(), 'yyyy-MM-dd');
+    return selectedDate === today;
+  }, [selectedDate]);
 
   useEffect(() => {
     // Load saved food plans
@@ -285,14 +291,22 @@ export default function Home() {
 
             {filteredItems.length > 0 && (
               <div id="generateReportBtnContainer" className="mt-6 space-y-2">
-                <Button 
-                  onClick={handleGenerateReport}
-                  className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-white font-bold py-4 px-6 rounded-md shadow-md transition transform hover:scale-[1.02]"
-                >
-                  <ChartPie className="mr-2 h-4 w-4" /> Generate Nutrition Report
-                </Button>
+                {/* Only show the Generate Report button for today's date */}
+                {isToday ? (
+                  <Button 
+                    onClick={handleGenerateReport}
+                    className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-white font-bold py-4 px-6 rounded-md shadow-md transition transform hover:scale-[1.02]"
+                  >
+                    <ChartPie className="mr-2 h-4 w-4" /> Generate Nutrition Report
+                  </Button>
+                ) : (
+                  <div className="text-center text-gray-500 bg-gray-100 rounded-md p-3 mb-3 text-sm">
+                    <p>Nutrition reports can only be generated for today's date.</p>
+                    <p>Select today's date to enable report generation.</p>
+                  </div>
+                )}
                 
-                {/* History button - only show if there are reports in history */}
+                {/* History button - always show if there are reports in history */}
                 {getReportHistory().length > 0 && (
                   <Button 
                     onClick={() => setIsHistoryModalOpen(true)}
