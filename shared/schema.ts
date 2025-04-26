@@ -114,6 +114,7 @@ export const foodPlanSchema = z.object({
   items: z.array(foodItemSchema),
   isDefault: z.boolean().default(false),
   createdAt: z.number(),
+  user_id: z.string().optional(), // Added for Supabase integration
 });
 
 export type FoodPlan = z.infer<typeof foodPlanSchema>;
