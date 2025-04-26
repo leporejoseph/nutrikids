@@ -493,91 +493,97 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                                         </div>
                                       </div>
                                       
-                                      {/* Weight with unit selection */}
-                                      <div className="mt-4 space-y-3">
-                                        <div className="flex justify-between mb-2">
-                                          <FormLabel className="font-medium">Weight Unit</FormLabel>
-                                          <Select 
-                                            value={child.weightUnit}
-                                            onValueChange={(value: "lb" | "kg") => {
-                                              const newChildren = [...field.value];
-                                              newChildren[index] = {
-                                                ...newChildren[index],
-                                                weightUnit: value
-                                              };
-                                              childInfoForm.setValue('children', newChildren);
-                                            }}
-                                          >
-                                            <SelectTrigger className="w-32 border border-gray-300 rounded-md focus:ring-2 focus:ring-accent focus:border-accent">
-                                              <SelectValue />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                              <SelectItem value="lb">Pounds (lb)</SelectItem>
-                                              <SelectItem value="kg">Kilograms (kg)</SelectItem>
-                                            </SelectContent>
-                                          </Select>
+                                      {/* Weight with unit selection - Improved layout */}
+                                      <div className="mt-4">
+                                        <FormLabel className="font-medium block mb-2">Weight</FormLabel>
+                                        <div className="flex gap-2">
+                                          <div className="flex-1">
+                                            <Input 
+                                              type="number" 
+                                              min="1" 
+                                              step="0.1" 
+                                              placeholder={`Weight in ${child.weightUnit === 'kg' ? 'kilograms' : 'pounds'}`}
+                                              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-accent focus:border-accent"
+                                              value={child.weight === null ? '' : child.weight.toString()}
+                                              onChange={(e) => {
+                                                const value = e.target.value ? parseFloat(e.target.value) : null;
+                                                const newChildren = [...field.value];
+                                                newChildren[index] = {
+                                                  ...newChildren[index],
+                                                  weight: value
+                                                };
+                                                childInfoForm.setValue('children', newChildren);
+                                              }}
+                                            />
+                                          </div>
+                                          <div className="w-32">
+                                            <Select 
+                                              value={child.weightUnit}
+                                              onValueChange={(value: "lb" | "kg") => {
+                                                const newChildren = [...field.value];
+                                                newChildren[index] = {
+                                                  ...newChildren[index],
+                                                  weightUnit: value
+                                                };
+                                                childInfoForm.setValue('children', newChildren);
+                                              }}
+                                            >
+                                              <SelectTrigger className="w-full h-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-accent focus:border-accent">
+                                                <SelectValue />
+                                              </SelectTrigger>
+                                              <SelectContent>
+                                                <SelectItem value="lb">Pounds (lb)</SelectItem>
+                                                <SelectItem value="kg">Kilograms (kg)</SelectItem>
+                                              </SelectContent>
+                                            </Select>
+                                          </div>
                                         </div>
-                                        
-                                        <Input 
-                                          type="number" 
-                                          min="1" 
-                                          step="0.1" 
-                                          placeholder={`Weight in ${child.weightUnit === 'kg' ? 'kilograms' : 'pounds'}`}
-                                          className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-accent focus:border-accent"
-                                          value={child.weight === null ? '' : child.weight.toString()}
-                                          onChange={(e) => {
-                                            const value = e.target.value ? parseFloat(e.target.value) : null;
-                                            const newChildren = [...field.value];
-                                            newChildren[index] = {
-                                              ...newChildren[index],
-                                              weight: value
-                                            };
-                                            childInfoForm.setValue('children', newChildren);
-                                          }}
-                                        />
                                       </div>
                                       
-                                      {/* Height with unit selection */}
-                                      <div className="mt-4 space-y-3">
-                                        <div className="flex justify-between mb-2">
-                                          <FormLabel className="font-medium">Height Unit</FormLabel>
-                                          <Select 
-                                            value={child.heightUnit}
-                                            onValueChange={(value: "in" | "cm") => {
-                                              const newChildren = [...field.value];
-                                              newChildren[index] = {
-                                                ...newChildren[index],
-                                                heightUnit: value
-                                              };
-                                              childInfoForm.setValue('children', newChildren);
-                                            }}
-                                          >
-                                            <SelectTrigger className="w-32 border border-gray-300 rounded-md focus:ring-2 focus:ring-accent focus:border-accent">
-                                              <SelectValue />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                              <SelectItem value="in">Inches (in)</SelectItem>
-                                              <SelectItem value="cm">Centimeters (cm)</SelectItem>
-                                            </SelectContent>
-                                          </Select>
+                                      {/* Height with unit selection - Improved layout */}
+                                      <div className="mt-4">
+                                        <FormLabel className="font-medium block mb-2">Height</FormLabel>
+                                        <div className="flex gap-2">
+                                          <div className="flex-1">
+                                            <Input 
+                                              type="number" 
+                                              min={child.heightUnit === 'cm' ? "30" : "12"}
+                                              placeholder={`Height in ${child.heightUnit === 'cm' ? 'centimeters' : 'inches'}`}
+                                              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-accent focus:border-accent"
+                                              value={child.height === null ? '' : child.height.toString()}
+                                              onChange={(e) => {
+                                                const value = e.target.value ? parseFloat(e.target.value) : null;
+                                                const newChildren = [...field.value];
+                                                newChildren[index] = {
+                                                  ...newChildren[index],
+                                                  height: value
+                                                };
+                                                childInfoForm.setValue('children', newChildren);
+                                              }}
+                                            />
+                                          </div>
+                                          <div className="w-32">
+                                            <Select 
+                                              value={child.heightUnit}
+                                              onValueChange={(value: "in" | "cm") => {
+                                                const newChildren = [...field.value];
+                                                newChildren[index] = {
+                                                  ...newChildren[index],
+                                                  heightUnit: value
+                                                };
+                                                childInfoForm.setValue('children', newChildren);
+                                              }}
+                                            >
+                                              <SelectTrigger className="w-full h-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-accent focus:border-accent">
+                                                <SelectValue />
+                                              </SelectTrigger>
+                                              <SelectContent>
+                                                <SelectItem value="in">Inches (in)</SelectItem>
+                                                <SelectItem value="cm">Centimeters (cm)</SelectItem>
+                                              </SelectContent>
+                                            </Select>
+                                          </div>
                                         </div>
-                                        
-                                        <Input 
-                                          type="number" 
-                                          min={child.heightUnit === 'cm' ? "30" : "12"}
-                                          placeholder={`Height in ${child.heightUnit === 'cm' ? 'centimeters' : 'inches'}`}
-                                          className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-accent focus:border-accent"
-                                          value={child.height === null ? '' : child.height.toString()}
-                                          onChange={(e) => {
-                                            const value = e.target.value ? parseFloat(e.target.value) : null;
-                                            const newChildren = [...field.value];
-                                            newChildren[index] = {
-                                              ...newChildren[index],
-                                              height: value
-                                            };
-                                            childInfoForm.setValue('children', newChildren);
-                                          }}
-                                        />
                                       </div>
                                       
                                       {/* Dietary Restrictions */}
