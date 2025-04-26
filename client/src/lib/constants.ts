@@ -15,18 +15,7 @@ export const FOOD_UNITS = [
   { value: "tsp", label: "teaspoon(s)" },
   { value: "oz", label: "ounce(s)" },
   { value: "g", label: "gram(s)" },
-  { value: "serving", label: "serving(s)" },
-];
-
-// Drink Units
-export const DRINK_UNITS = [
   { value: "ml", label: "milliliter(s)" },
-  { value: "l", label: "liter(s)" },
-  { value: "oz", label: "fluid ounce(s)" },
-  { value: "cup", label: "cup(s)" },
-  { value: "bottle", label: "bottle(s)" },
-  { value: "can", label: "can(s)" },
-  { value: "glass", label: "glass(es)" },
   { value: "serving", label: "serving(s)" },
 ];
 
