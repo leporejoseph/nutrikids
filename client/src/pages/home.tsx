@@ -10,7 +10,7 @@ import DateSelector from "@/components/date-selector";
 import NutritionReportView from "@/components/report/report-view";
 import ReportHistoryModal from "@/components/report/report-history-modal";
 import { APP_IMAGES } from "@/lib/constants";
-import { getFoodItems, saveFoodItems, getAppSettings, getChildInfo, saveNutritionReport, getNutritionReport, getFoodPlans, saveFoodPlan, deleteFoodPlan, getReportHistory } from "@/lib/localStorage";
+import { getFoodItems, saveFoodItems, getAppSettings, getChildInfo, saveNutritionReport, getNutritionReport, getFoodPlans, saveFoodPlan, deleteFoodPlan, getReportHistory } from "@/lib/storage";
 import { Button } from "@/components/ui/button";
 import { ChartPie, Apple, Pill, BookmarkPlus, Save, BookmarkCheck, Star, Coffee, Upload, Trash2, MinusCircle, History, FileText } from "lucide-react";
 import { generateNutritionReport } from "@/lib/ai";
@@ -28,6 +28,7 @@ export default function Home() {
   const [reportError, setReportError] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<string>(format(new Date(), 'yyyy-MM-dd'));
   const [plans, setPlans] = useState<FoodPlan[]>([]);
+  const [reportHistory, setReportHistory] = useState<ReportHistoryItem[]>([]);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isLoadDialogOpen, setIsLoadDialogOpen] = useState(false);
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
@@ -41,27 +42,47 @@ export default function Home() {
 
   useEffect(() => {
     // Load saved food plans
-    setPlans(getFoodPlans());
+    const loadPlans = async () => {
+      try {
+        const foodPlans = await getFoodPlans();
+        setPlans(foodPlans);
+      } catch (error) {
+        console.error("Error loading food plans:", error);
+      }
+    };
+    loadPlans();
   }, []);
 
   useEffect(() => {
     // Load saved food items
-    const savedItems = getFoodItems();
-    
-    // Add date field to any items that don't have it (backward compatibility)
-    const itemsWithDates = savedItems.map(item => {
-      if (!item.date) {
-        return { ...item, date: format(new Date(item.createdAt), 'yyyy-MM-dd') };
-      }
-      return item;
-    });
-    
-    setFoodItems(itemsWithDates);
-    saveFoodItems(itemsWithDates); // Save back the items with dates
+    const loadData = async () => {
+      try {
+        // Load food items
+        const savedItems = await getFoodItems();
+        
+        // Add date field to any items that don't have it (backward compatibility)
+        const itemsWithDates = savedItems.map(item => {
+          if (!item.date) {
+            return { ...item, date: format(new Date(item.createdAt), 'yyyy-MM-dd') };
+          }
+          return item;
+        });
+        
+        setFoodItems(itemsWithDates);
+        await saveFoodItems(itemsWithDates); // Save back the items with dates
 
-    // Load saved report (if any)
-    const savedReport = getNutritionReport();
-    setReport(savedReport);
+        // Load saved report (if any)
+        const savedReport = await getNutritionReport();
+        setReport(savedReport);
+        
+        // Load report history
+        const history = await getReportHistory();
+        setReportHistory(history);
+      } catch (error) {
+        console.error("Error loading data:", error);
+      }
+    };
+    loadData();
   }, []);
   
   // Filter items by selected date
@@ -69,27 +90,39 @@ export default function Home() {
     return foodItems.filter(item => item.date === selectedDate);
   }, [foodItems, selectedDate]);
 
-  const handleAddFood = (food: FoodItem) => {
+  const handleAddFood = async (food: FoodItem) => {
     const updatedItems = [...foodItems, food];
     setFoodItems(updatedItems);
-    saveFoodItems(updatedItems);
+    try {
+      await saveFoodItems(updatedItems);
+    } catch (error) {
+      console.error("Error saving food items:", error);
+    }
   };
 
-  const handleUpdateFood = (id: string, updatedItem: Partial<FoodItem>) => {
+  const handleUpdateFood = async (id: string, updatedItem: Partial<FoodItem>) => {
     const updatedItems = foodItems.map((item) => 
       item.id === id ? { ...item, ...updatedItem } : item
     );
     setFoodItems(updatedItems);
-    saveFoodItems(updatedItems);
+    try {
+      await saveFoodItems(updatedItems);
+    } catch (error) {
+      console.error("Error updating food items:", error);
+    }
   };
 
-  const handleDeleteFood = (id: string) => {
+  const handleDeleteFood = async (id: string) => {
     const updatedItems = foodItems.filter((item) => item.id !== id);
     setFoodItems(updatedItems);
-    saveFoodItems(updatedItems);
+    try {
+      await saveFoodItems(updatedItems);
+    } catch (error) {
+      console.error("Error deleting food item:", error);
+    }
   };
   
-  const handleLoadFoodPlan = (items: FoodItem[]) => {
+  const handleLoadFoodPlan = async (items: FoodItem[]) => {
     // Filter items to only include those for the selected date
     const itemsForSelectedDate = items.map(item => ({
       ...item,
@@ -101,15 +134,25 @@ export default function Home() {
     // Add the items to the current food items
     const updatedItems = [...foodItems, ...itemsForSelectedDate];
     setFoodItems(updatedItems);
-    saveFoodItems(updatedItems);
     
-    toast({
-      title: "Food plan loaded",
-      description: `${itemsForSelectedDate.length} items have been added to your current date.`,
-    });
+    try {
+      await saveFoodItems(updatedItems);
+      
+      toast({
+        title: "Food plan loaded",
+        description: `${itemsForSelectedDate.length} items have been added to your current date.`,
+      });
+    } catch (error) {
+      console.error("Error loading food plan:", error);
+      toast({
+        title: "Error loading plan",
+        description: "There was a problem loading the food plan. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
   
-  const handleSaveFoodPlan = (name: string, description: string, isDefault: boolean) => {
+  const handleSaveFoodPlan = async (name: string, description: string, isDefault: boolean) => {
     if (filteredItems.length === 0) {
       toast({
         title: "No items to save",
@@ -128,41 +171,61 @@ export default function Home() {
       isDefault
     };
     
-    saveFoodPlan(newPlan);
-    
-    // Refresh plans list
-    setPlans(getFoodPlans());
-    
-    toast({
-      title: "Plan saved",
-      description: `${newPlan.name} has been saved with ${filteredItems.length} items.`,
-    });
-    
-    setIsCreateDialogOpen(false);
+    try {
+      await saveFoodPlan(newPlan);
+      
+      // Refresh plans list
+      const updatedPlans = await getFoodPlans();
+      setPlans(updatedPlans);
+      
+      toast({
+        title: "Plan saved",
+        description: `${newPlan.name} has been saved with ${filteredItems.length} items.`,
+      });
+      
+      setIsCreateDialogOpen(false);
+    } catch (error) {
+      console.error("Error saving food plan:", error);
+      toast({
+        title: "Error saving plan",
+        description: "There was a problem saving the food plan. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
   
-  const handleDeleteFoodPlan = (planId: string, e: React.MouseEvent) => {
+  const handleDeleteFoodPlan = async (planId: string, e: React.MouseEvent) => {
     // Stop event propagation to prevent the plan from being loaded
     e.stopPropagation();
     
     // Get the plan we're deleting for the toast message
     const planToDelete = plans.find(plan => plan.id === planId);
     
-    // Delete the plan
-    deleteFoodPlan(planId);
-    
-    // Refresh the plans list
-    setPlans(getFoodPlans());
-    
-    // Show a confirmation toast
-    toast({
-      title: "Plan deleted",
-      description: planToDelete ? `Plan "${planToDelete.name}" has been deleted.` : "Food plan has been deleted.",
-    });
+    try {
+      // Delete the plan
+      await deleteFoodPlan(planId);
+      
+      // Refresh the plans list
+      const updatedPlans = await getFoodPlans();
+      setPlans(updatedPlans);
+      
+      // Show a confirmation toast
+      toast({
+        title: "Plan deleted",
+        description: planToDelete ? `Plan "${planToDelete.name}" has been deleted.` : "Food plan has been deleted.",
+      });
+    } catch (error) {
+      console.error("Error deleting food plan:", error);
+      toast({
+        title: "Error deleting plan",
+        description: "There was a problem deleting the food plan. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   // Handle loading a report from history
-  const handleSelectHistoryReport = (historicalReport: NutritionReport) => {
+  const handleSelectHistoryReport = async (historicalReport: NutritionReport) => {
     setReport(historicalReport);
     setReportError(null);
     setView("report");
@@ -181,8 +244,9 @@ export default function Home() {
       setIsLoading(true);
       setView("report");
 
-      const settings = getAppSettings();
-      const childInfo = getChildInfo();
+      // Get settings and child info with await to handle promises
+      const settings = await getAppSettings();
+      const childInfo = await getChildInfo();
 
       if (!settings.apiKey) {
         const errorMsg = "Google Gemini API key is required. Please add it in the settings.";
@@ -216,7 +280,7 @@ export default function Home() {
 
       // Successfully generated report
       setReport(newReport);
-      saveNutritionReport(newReport);
+      await saveNutritionReport(newReport);
       setReportError(null);
       
     } catch (error) {
@@ -307,7 +371,8 @@ export default function Home() {
                 )}
                 
                 {/* History button - always show if there are reports in history */}
-                {getReportHistory().length > 0 && (
+                {/* Using state variable to check for report history instead of direct call */}
+                {plans.length > 0 && (
                   <Button 
                     onClick={() => setIsHistoryModalOpen(true)}
                     className="w-full bg-purple-700 hover:bg-purple-800 text-white py-3 px-6 rounded-md"
