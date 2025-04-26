@@ -27,13 +27,35 @@ interface FoodEntryFormProps {
 export default function FoodEntryForm({ onAddFood, selectedDate }: FoodEntryFormProps) {
   const [entryType, setEntryType] = useState<"food" | "drink" | "supplement">("food");
   
+  // Get intelligent default meal type based on current time
+  const getDefaultMealType = () => {
+    const currentHour = new Date().getHours();
+    
+    // Morning hours: 4am to 10am -> breakfast
+    if (currentHour >= 4 && currentHour < 10) {
+      return "breakfast";
+    }
+    // Lunch hours: 10am to 3pm -> lunch
+    else if (currentHour >= 10 && currentHour < 15) {
+      return "lunch";
+    }
+    // Dinner hours: 3pm to 10pm -> dinner
+    else if (currentHour >= 15 && currentHour < 22) {
+      return "dinner";
+    }
+    // Late night or early morning: other times -> snack
+    else {
+      return "snack";
+    }
+  };
+  
   const form = useForm<FoodEntryFormValues>({
     resolver: zodResolver(foodEntrySchema),
     defaultValues: {
       name: "",
       quantity: 1,
-      unit: entryType === "food" ? "piece" : entryType === "drink" ? "ml" : "pill",
-      mealType: "breakfast",
+      unit: entryType === "food" ? "piece" : entryType === "drink" ? "serving" : "pill",
+      mealType: getDefaultMealType(),
     },
   });
 
@@ -42,7 +64,7 @@ export default function FoodEntryForm({ onAddFood, selectedDate }: FoodEntryForm
     // Get appropriate default unit for the selected type
     const defaultUnit = 
       entryType === "food" ? "piece" : 
-      entryType === "drink" ? "ml" : 
+      entryType === "drink" ? "serving" : 
       "pill";
     
     form.setValue("unit", defaultUnit);
@@ -67,7 +89,7 @@ export default function FoodEntryForm({ onAddFood, selectedDate }: FoodEntryForm
     form.reset({
       name: "",
       quantity: 1,
-      unit: entryType === "food" ? "piece" : entryType === "drink" ? "ml" : "pill",
+      unit: entryType === "food" ? "piece" : entryType === "drink" ? "serving" : "pill",
       mealType: form.getValues().mealType,
     });
   };
