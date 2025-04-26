@@ -12,12 +12,12 @@ import ReportHistoryModal from "@/components/report/report-history-modal";
 import { APP_IMAGES } from "@/lib/constants";
 import { getFoodItems, saveFoodItems, getAppSettings, getChildInfo, saveNutritionReport, getNutritionReport, getFoodPlans, saveFoodPlan, deleteFoodPlan, getReportHistory } from "@/lib/storage";
 import { Button } from "@/components/ui/button";
-import { ChartPie, Apple, Pill, BookmarkPlus, Save, BookmarkCheck, Star, Coffee, Upload, Trash2, MinusCircle, History, FileText, Users, Bookmark } from "lucide-react";
+import { ChartPie, Apple, Pill, BookmarkPlus, Save, BookmarkCheck, Star, Coffee, Upload, Trash2, MinusCircle, History, FileText, Users, Bookmark, Search } from "lucide-react";
 import { generateNutritionReport } from "@/lib/ai";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 
 export default function Home() {
   const [foodItems, setFoodItems] = useState<FoodItem[]>([]);
@@ -363,26 +363,14 @@ export default function Home() {
             <div id="itemsListContainer" className="mt-4 mb-6">
               <div className="flex justify-between items-center mb-2">
                 <h3 className="font-inter font-semibold text-lg">Added Items</h3>
-                <div className="flex space-x-2">
-                  {filteredItems.length > 0 && (
-                    <button 
-                      onClick={() => setIsCreateDialogOpen(true)}
-                      className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
-                      title="Save current items as a plan"
-                    >
-                      <BookmarkPlus className="h-4 w-4" />
-                    </button>
-                  )}
-                  {plans.length > 0 && (
-                    <button 
-                      onClick={() => setIsLoadDialogOpen(true)}
-                      className="p-1.5 text-green-600 hover:bg-green-50 rounded-full transition-colors"
-                      title="Load saved meal plan"
-                    >
-                      <Upload className="h-4 w-4" />
-                    </button>
-                  )}
-                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setIsLoadDialogOpen(true)}
+                  className="text-purple-600 border-purple-200 hover:bg-purple-50"
+                >
+                  <Bookmark className="mr-1 h-4 w-4" /> Food Plans
+                </Button>
               </div>
               
               <FoodItemList 
@@ -394,34 +382,7 @@ export default function Home() {
               />
             </div>
 
-            {/* Food Plans Collapsible Component */}
-            <Collapsible className="mt-4 mb-6 border rounded-md bg-blue-50 border-blue-100 overflow-hidden">
-              <CollapsibleTrigger asChild>
-                <div className="p-4 cursor-pointer hover:bg-blue-100 transition-colors">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-inter font-semibold text-lg flex items-center">
-                      <Bookmark className="mr-2 h-5 w-5 text-blue-600" /> Food Plans
-                    </h3>
-                    {childInfo?.selectedChildId && (
-                      <div className="text-sm text-blue-700 bg-blue-100 px-2 py-1 rounded-full flex items-center">
-                        <Users className="h-3 w-3 mr-1" />
-                        {childInfo.children?.find(c => c.id === childInfo.selectedChildId)?.name || 'Selected Child'}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </CollapsibleTrigger>
-              <CollapsibleContent>
-                <div className="p-4 pt-0 border-t border-blue-100">
-                  {/* FoodPlanManager component */}
-                  <FoodPlanManager 
-                    currentItems={filteredItems} 
-                    onLoadPlan={handleLoadFoodPlan}
-                    selectedChildId={selectedChildId}
-                  />
-                </div>
-              </CollapsibleContent>
-            </Collapsible>
+
 
             {filteredItems.length > 0 && (
               <div id="generateReportBtnContainer" className="mt-6 space-y-2">
@@ -576,55 +537,225 @@ export default function Home() {
             
             {/* Load Plan Dialog */}
             <Dialog open={isLoadDialogOpen} onOpenChange={setIsLoadDialogOpen}>
-              <DialogContent>
+              <DialogContent className="max-w-md w-full">
                 <DialogHeader>
-                  <DialogTitle>Load Food Plan</DialogTitle>
+                  <DialogTitle>Food Plans</DialogTitle>
+                  <DialogDescription>
+                    Manage and load your saved food plans
+                  </DialogDescription>
                 </DialogHeader>
                 <div className="py-4">
-                  <h3 className="font-semibold text-sm text-gray-500 uppercase tracking-wider mb-4">
-                    Select a plan to load
-                  </h3>
-                  <div className="space-y-3 max-h-[400px] overflow-y-auto">
-                    {plans.map((plan) => (
-                      <div 
-                        key={plan.id} 
-                        className="bg-white rounded-lg border border-gray-200 p-4 hover:border-blue-300 hover:bg-blue-50 cursor-pointer transition relative"
-                        onClick={() => {
-                          handleLoadFoodPlan(plan.items);
-                          setIsLoadDialogOpen(false);
-                        }}
-                      >
-                        <div className="flex justify-between items-center">
-                          <div>
-                            <div className="font-medium flex items-center">
-                              {plan.name}
-                              {plan.isDefault && (
-                                <span className="ml-2 text-amber-500">
-                                  <Star className="h-4 w-4" />
-                                </span>
-                              )}
-                            </div>
-                            {plan.description && (
-                              <p className="text-sm text-gray-500">{plan.description}</p>
-                            )}
-                            <div className="text-xs text-gray-400 mt-1">
-                              {plan.items.length} items • {new Date(plan.createdAt).toLocaleDateString()}
-                            </div>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <button 
-                              onClick={(e) => handleDeleteFoodPlan(plan.id, e)}
-                              className="p-1.5 text-red-500 hover:bg-red-50 rounded-full transition-colors"
-                              title="Delete plan"
-                            >
-                              <MinusCircle className="h-5 w-5" />
-                            </button>
-                            <BookmarkCheck className="h-5 w-5 text-green-500" />
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+                  {/* Add a new plan button */}
+                  {filteredItems.length > 0 && (
+                    <Button 
+                      variant="outline" 
+                      className="w-full mb-4 bg-blue-50 border-blue-200 hover:bg-blue-100"
+                      onClick={() => {
+                        setIsLoadDialogOpen(false);
+                        setIsCreateDialogOpen(true);
+                      }}
+                    >
+                      <BookmarkPlus className="mr-2 h-4 w-4" /> Save Current Items as Plan
+                    </Button>
+                  )}
+                  
+                  {/* Search for plans - simplified */}
+                  <div className="relative mb-4">
+                    <input
+                      type="text"
+                      placeholder="🔍 Search plans..."
+                      className="w-full px-4 py-2 border border-gray-200 rounded-md text-sm"
+                      onChange={(e) => {
+                        // You could add search functionality here
+                      }}
+                    />
                   </div>
+                  
+                  {plans.length > 0 ? (
+                    <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-2">
+                      {/* Group plans by child */}
+                      {childInfo?.children && childInfo.children.length > 0 && (
+                        <>
+                          {/* Child-specific plans */}
+                          {childInfo.children.map(child => {
+                            const childPlans = plans.filter(plan => plan.childId === child.id);
+                            if (childPlans.length === 0) return null;
+                            
+                            return (
+                              <div key={child.id} className="space-y-2">
+                                <div className="flex items-center">
+                                  <h3 className="font-semibold text-sm text-purple-600 flex items-center">
+                                    <Users className="mr-1 h-3.5 w-3.5" />
+                                    {child.name}'s Plans
+                                  </h3>
+                                  <div className="ml-2 text-xs bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full">
+                                    {childPlans.length}
+                                  </div>
+                                </div>
+                                
+                                {childPlans.map((plan) => (
+                                  <div 
+                                    key={plan.id} 
+                                    className="bg-white rounded-lg border border-gray-200 p-3 hover:border-blue-300 hover:bg-blue-50 cursor-pointer transition"
+                                    onClick={() => {
+                                      handleLoadFoodPlan(plan.items);
+                                      setIsLoadDialogOpen(false);
+                                    }}
+                                  >
+                                    <div className="flex justify-between items-center">
+                                      <div>
+                                        <div className="font-medium flex items-center">
+                                          {plan.name}
+                                          {plan.isDefault && (
+                                            <span className="ml-2 text-amber-500">
+                                              <Star className="h-4 w-4" />
+                                            </span>
+                                          )}
+                                        </div>
+                                        {plan.description && (
+                                          <p className="text-sm text-gray-500 line-clamp-1">{plan.description}</p>
+                                        )}
+                                        <div className="text-xs text-gray-400 mt-1">
+                                          {plan.items.length} items • {new Date(plan.createdAt).toLocaleDateString()}
+                                        </div>
+                                      </div>
+                                      <div className="flex items-center space-x-2">
+                                        <button 
+                                          onClick={(e) => handleDeleteFoodPlan(plan.id, e)}
+                                          className="p-1.5 text-red-500 hover:bg-red-50 rounded-full transition-colors"
+                                          title="Delete plan"
+                                        >
+                                          <MinusCircle className="h-4 w-4" />
+                                        </button>
+                                        <BookmarkCheck className="h-4 w-4 text-green-500" />
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            );
+                          })}
+                          
+                          {/* General plans (no child association) */}
+                          {(() => {
+                            const generalPlans = plans.filter(plan => !plan.childId);
+                            if (generalPlans.length === 0) return null;
+                            
+                            return (
+                              <div className="space-y-2">
+                                <div className="flex items-center">
+                                  <h3 className="font-semibold text-sm text-blue-600 flex items-center">
+                                    <Bookmark className="mr-1 h-3.5 w-3.5" />
+                                    General Plans
+                                  </h3>
+                                  <div className="ml-2 text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">
+                                    {generalPlans.length}
+                                  </div>
+                                </div>
+                                
+                                {generalPlans.map((plan) => (
+                                  <div 
+                                    key={plan.id} 
+                                    className="bg-white rounded-lg border border-gray-200 p-3 hover:border-blue-300 hover:bg-blue-50 cursor-pointer transition"
+                                    onClick={() => {
+                                      handleLoadFoodPlan(plan.items);
+                                      setIsLoadDialogOpen(false);
+                                    }}
+                                  >
+                                    <div className="flex justify-between items-center">
+                                      <div>
+                                        <div className="font-medium flex items-center">
+                                          {plan.name}
+                                          {plan.isDefault && (
+                                            <span className="ml-2 text-amber-500">
+                                              <Star className="h-4 w-4" />
+                                            </span>
+                                          )}
+                                        </div>
+                                        {plan.description && (
+                                          <p className="text-sm text-gray-500 line-clamp-1">{plan.description}</p>
+                                        )}
+                                        <div className="text-xs text-gray-400 mt-1">
+                                          {plan.items.length} items • {new Date(plan.createdAt).toLocaleDateString()}
+                                        </div>
+                                      </div>
+                                      <div className="flex items-center space-x-2">
+                                        <button 
+                                          onClick={(e) => handleDeleteFoodPlan(plan.id, e)}
+                                          className="p-1.5 text-red-500 hover:bg-red-50 rounded-full transition-colors"
+                                          title="Delete plan"
+                                        >
+                                          <MinusCircle className="h-4 w-4" />
+                                        </button>
+                                        <BookmarkCheck className="h-4 w-4 text-green-500" />
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            );
+                          })()}
+                        </>
+                      )}
+                      
+                      {/* If no children are set up, just show all plans */}
+                      {(!childInfo?.children || childInfo.children.length === 0) && (
+                        <div className="space-y-2">
+                          <h3 className="font-semibold text-sm text-gray-500 uppercase tracking-wider">
+                            All Plans
+                          </h3>
+                          
+                          {plans.map((plan) => (
+                            <div 
+                              key={plan.id} 
+                              className="bg-white rounded-lg border border-gray-200 p-3 hover:border-blue-300 hover:bg-blue-50 cursor-pointer transition"
+                              onClick={() => {
+                                handleLoadFoodPlan(plan.items);
+                                setIsLoadDialogOpen(false);
+                              }}
+                            >
+                              <div className="flex justify-between items-center">
+                                <div>
+                                  <div className="font-medium flex items-center">
+                                    {plan.name}
+                                    {plan.isDefault && (
+                                      <span className="ml-2 text-amber-500">
+                                        <Star className="h-4 w-4" />
+                                      </span>
+                                    )}
+                                  </div>
+                                  {plan.description && (
+                                    <p className="text-sm text-gray-500 line-clamp-1">{plan.description}</p>
+                                  )}
+                                  <div className="text-xs text-gray-400 mt-1">
+                                    {plan.items.length} items • {new Date(plan.createdAt).toLocaleDateString()}
+                                  </div>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <button 
+                                    onClick={(e) => handleDeleteFoodPlan(plan.id, e)}
+                                    className="p-1.5 text-red-500 hover:bg-red-50 rounded-full transition-colors"
+                                    title="Delete plan"
+                                  >
+                                    <MinusCircle className="h-4 w-4" />
+                                  </button>
+                                  <BookmarkCheck className="h-4 w-4 text-green-500" />
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="text-center p-6 bg-gray-50 rounded-lg border border-dashed border-gray-200">
+                      <Bookmark className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                      <h3 className="font-medium text-gray-600 mb-1">No Saved Plans</h3>
+                      <p className="text-sm text-gray-500">
+                        Save your food items as a plan for easy access later
+                      </p>
+                    </div>
+                  )}
                 </div>
               </DialogContent>
             </Dialog>
