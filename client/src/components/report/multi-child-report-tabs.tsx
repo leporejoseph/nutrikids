@@ -42,9 +42,11 @@ export default function MultiChildReportTabs({ multiChildReport, childInfo, isLo
           return (
             <TabsTrigger key={childId} value={childId} className="flex items-center gap-2">
               {childName}
-              <Badge variant="secondary" className="ml-1 text-xs">
-                {report.nutritionScore}%
-              </Badge>
+              {!isLoading && (
+                <Badge variant="secondary" className="ml-1 text-xs">
+                  {report.nutritionScore}%
+                </Badge>
+              )}
             </TabsTrigger>
           );
         })}

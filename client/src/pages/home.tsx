@@ -483,11 +483,6 @@ export default function Home() {
       <main className="p-4">
         {view === "entry" ? (
           <div id="entryView" className="animate-in fade-in">
-            <div className="mb-6">
-              <h2 className="font-inter font-bold text-xl mb-2">Nutrition Tracker</h2>
-              <p className="text-gray-600">Track your child's food and supplements</p>
-            </div>
-            
             {/* Date Selector */}
             <DateSelector selectedDate={selectedDate} onDateChange={setSelectedDate} />
             

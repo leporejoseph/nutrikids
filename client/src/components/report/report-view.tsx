@@ -74,16 +74,18 @@ export default function NutritionReportView({ report, isLoading, onBack, error }
 
   return (
     <div className="animate-in fade-in">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="font-inter font-bold text-xl">Nutrition Report</h2>
-        <button 
-          onClick={onBack}
-          className="p-2 text-primary hover:text-accent"
-          aria-label="Back to food entry"
-        >
-          <ArrowLeft className="h-4 w-4 mr-1 inline" /> Back
-        </button>
-      </div>
+      {/* Only show header and back button in main report view, not in tabs */}
+      {onBack && typeof onBack === 'function' && onBack.toString() !== '() => {}' && (
+        <div className="flex justify-between items-center mb-4">
+          <button 
+            onClick={onBack}
+            className="p-2 text-primary hover:text-accent"
+            aria-label="Back to food entry"
+          >
+            <ArrowLeft className="h-4 w-4 mr-1 inline" /> Back
+          </button>
+        </div>
+      )}
 
       {/* Loading State */}
       {isLoading && (
