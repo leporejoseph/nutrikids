@@ -16,6 +16,7 @@ export default function Home() {
   const [view, setView] = useState<"food" | "report">("food");
   const [isLoading, setIsLoading] = useState(false);
   const [report, setReport] = useState<NutritionReport | null>(null);
+  const [reportError, setReportError] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -49,6 +50,9 @@ export default function Home() {
   };
 
   const handleGenerateReport = async () => {
+    // Reset any previous errors
+    setReportError(null);
+    
     try {
       setIsLoading(true);
       setView("report");
@@ -57,9 +61,22 @@ export default function Home() {
       const childInfo = getChildInfo();
 
       if (!settings.apiKey) {
+        const errorMsg = "Google Gemini API key is required. Please add it in the settings.";
+        setReportError(errorMsg);
         toast({
           title: "API Key Missing",
-          description: "Please add your Google Gemini API key in the settings.",
+          description: errorMsg,
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      if (!settings.selectedModel) {
+        const errorMsg = "Please select an AI model in the settings.";
+        setReportError(errorMsg);
+        toast({
+          title: "Model Not Selected",
+          description: errorMsg,
           variant: "destructive",
         });
         return;
@@ -72,15 +89,26 @@ export default function Home() {
         model: settings.selectedModel,
       });
 
+      // Successfully generated report
       setReport(newReport);
       saveNutritionReport(newReport);
+      setReportError(null);
+      
     } catch (error) {
       console.error("Error generating report:", error);
+      const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
+      
+      // Set the error to be displayed in the report view
+      setReportError(errorMessage);
+      
       toast({
         title: "Error Generating Report",
-        description: error instanceof Error ? error.message : "An unknown error occurred",
+        description: errorMessage,
         variant: "destructive",
       });
+      
+      // Clear any previous report when there's an error
+      setReport(null);
     } finally {
       setIsLoading(false);
     }
@@ -131,7 +159,8 @@ export default function Home() {
           <NutritionReportView 
             report={report} 
             isLoading={isLoading} 
-            onBack={() => setView("food")} 
+            onBack={() => setView("food")}
+            error={reportError}
           />
         )}
       </main>

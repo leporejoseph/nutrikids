@@ -22,39 +22,214 @@ export async function generateNutritionReport({
   model,
 }: GenerateReportParams): Promise<NutritionReport> {
   try {
+    // Validate inputs
+    if (!foodItems || foodItems.length === 0) {
+      throw new Error("No food items to analyze. Please add at least one food item.");
+    }
+    
     if (!apiKey) {
-      throw new Error("API key is required. Please add it in the settings.");
-    }
-
-    const genAI = new GoogleGenAI({ apiKey });
-    
-    // Create a detailed prompt
-    const prompt = createAnalysisPrompt(foodItems, childInfo);
-
-    // Make the API call using any required
-    // This is a workaround for TypeScript errors with the Google Generative AI SDK
-    // @ts-ignore - Bypass TypeScript errors with the SDK
-    const generativeModel = genAI.getGenerativeModel({ model });
-    // @ts-ignore - Bypass TypeScript errors with the SDK
-    const result = await generativeModel.generateContent(prompt);
-
-    // Get the response text from the API response
-    if (!result.text) {
-      throw new Error("No response received from the API.");
+      throw new Error("Google Gemini API key is required. Please add it in the settings.");
     }
     
+    if (!model) {
+      throw new Error("No AI model selected. Please select a model in the settings.");
+    }
+
+    // For testing and development purposes
+    // Return mock data for local development or when a test key is used
+    if (apiKey === 'test123' || apiKey === 'test' || apiKey === 'development') {
+      console.log("Using test key - returning placeholder report");
+      return getMockNutritionReport(foodItems, childInfo);
+    }
+
     try {
-      const parsedReport = JSON.parse(result.text);
-      return parsedReport as NutritionReport;
-    } catch (jsonError) {
-      console.error("Failed to parse Gemini response as JSON:", jsonError);
-      console.log("Raw response:", result.text);
-      throw new Error("Failed to parse nutrition data. Please try again.");
+      // Create a detailed prompt
+      const prompt = createAnalysisPrompt(foodItems, childInfo);
+      console.log("Using model:", model);
+      
+      // Create a safer way to access the API
+      // We'll use fetch directly since the Google Generative AI SDK TypeScript support is problematic
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{
+              text: prompt
+            }]
+          }]
+        })
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error("API Error:", errorData);
+        
+        if (response.status === 400) {
+          throw new Error("Invalid request to Gemini API. Please check your API key and try again.");
+        } else if (response.status === 401) {
+          throw new Error("Authentication failed. Please check your Gemini API key and try again.");
+        } else if (response.status === 403) {
+          throw new Error("API key doesn't have access to the Gemini model. Please check your permissions.");
+        } else if (response.status === 404) {
+          throw new Error(`Model '${model}' not found. Please select a different model.`);
+        } else if (response.status === 429) {
+          throw new Error("Quota exceeded. Please try again later or check your API usage limits.");
+        } else {
+          throw new Error(`API Error: ${response.status} - ${errorData.error?.message || "Unknown error"}`);
+        }
+      }
+      
+      const data = await response.json();
+      
+      if (!data.candidates || data.candidates.length === 0 || !data.candidates[0].content) {
+        throw new Error("No response generated from the API. Please try again.");
+      }
+      
+      const content = data.candidates[0].content;
+      const parts = content.parts || [];
+      const textResponse = parts[0]?.text;
+      
+      if (!textResponse) {
+        throw new Error("Empty response from Gemini API. Please try again.");
+      }
+      
+      try {
+        const parsedReport = JSON.parse(textResponse);
+        return parsedReport as NutritionReport;
+      } catch (jsonError) {
+        console.error("Failed to parse Gemini response as JSON:", jsonError);
+        console.log("Raw response:", textResponse);
+        throw new Error("Failed to parse nutrition data. The AI didn't return proper JSON. Please try again.");
+      }
+    } catch (apiError: any) {
+      // Specific error handling for API issues
+      if (apiError.message.includes("API key")) {
+        throw new Error("Invalid or expired API key. Please check your API key in settings.");
+      } else if (apiError.message.includes("model")) {
+        throw new Error(`Model issue: ${apiError.message}. Try selecting a different model in settings.`);
+      } else {
+        throw apiError; // Re-throw other errors
+      }
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error generating nutrition report:", error);
     throw error;
   }
+}
+
+// Mock report function for testing - only used when test API keys are provided
+function getMockNutritionReport(foodItems: FoodItem[], childInfo: ChildInfo): NutritionReport {
+  return {
+    calories: 1200,
+    caloriesTarget: 1800,
+    nutritionScore: 65,
+    macronutrients: [
+      {
+        name: "Protein",
+        value: "35",
+        unit: "g",
+        percentOfDaily: 70,
+        recommendedRange: "40-50g"
+      },
+      {
+        name: "Carbohydrates",
+        value: "150",
+        unit: "g",
+        percentOfDaily: 60,
+        recommendedRange: "225-325g"
+      },
+      {
+        name: "Fat",
+        value: "45",
+        unit: "g",
+        percentOfDaily: 65,
+        recommendedRange: "60-70g"
+      },
+      {
+        name: "Fiber",
+        value: "15",
+        unit: "g",
+        percentOfDaily: 50,
+        recommendedRange: "25-30g"
+      }
+    ],
+    vitamins: [
+      {
+        name: "Vitamin A",
+        value: "450",
+        unit: "mcg",
+        percentOfDaily: 75,
+        recommendedRange: "600mcg"
+      },
+      {
+        name: "Vitamin C",
+        value: "30",
+        unit: "mg",
+        percentOfDaily: 40,
+        recommendedRange: "75mg"
+      },
+      {
+        name: "Vitamin D",
+        value: "5",
+        unit: "mcg",
+        percentOfDaily: 33,
+        recommendedRange: "15mcg"
+      },
+      {
+        name: "Vitamin E",
+        value: "4",
+        unit: "mg",
+        percentOfDaily: 40,
+        recommendedRange: "10mg"
+      }
+    ],
+    minerals: [
+      {
+        name: "Calcium",
+        value: "500",
+        unit: "mg",
+        percentOfDaily: 38,
+        recommendedRange: "1300mg"
+      },
+      {
+        name: "Iron",
+        value: "7",
+        unit: "mg",
+        percentOfDaily: 70,
+        recommendedRange: "10mg"
+      },
+      {
+        name: "Zinc",
+        value: "6",
+        unit: "mg",
+        percentOfDaily: 75,
+        recommendedRange: "8mg"
+      },
+      {
+        name: "Potassium",
+        value: "1800",
+        unit: "mg",
+        percentOfDaily: 60,
+        recommendedRange: "3000mg"
+      }
+    ],
+    recommendations: [
+      "Add more fruits and vegetables to increase vitamin and fiber intake",
+      "Include more calcium-rich foods like yogurt and cheese",
+      "Consider a vitamin D supplement, especially during winter months",
+      "Add more whole grains to increase fiber intake"
+    ],
+    foodSuggestions: [
+      "Greek yogurt with berries",
+      "Carrot sticks with hummus",
+      "Whole grain crackers with cheese",
+      "Orange slices",
+      "Salmon"
+    ]
+  };
 }
 
 function createAnalysisPrompt(foodItems: FoodItem[], childInfo: ChildInfo): string {

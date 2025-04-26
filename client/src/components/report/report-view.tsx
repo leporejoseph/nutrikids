@@ -14,6 +14,7 @@ interface NutritionReportViewProps {
 
 export default function NutritionReportView({ report, isLoading, onBack }: NutritionReportViewProps) {
   const [activeTab, setActiveTab] = useState("macronutrients");
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const tabs = [
     { id: "macronutrients", label: "Macronutrients" },
@@ -22,10 +23,38 @@ export default function NutritionReportView({ report, isLoading, onBack }: Nutri
     { id: "recommendations", label: "Tips" },
   ];
 
+  // Get any error from URL params
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const error = urlParams.get('error');
+    if (error) {
+      setErrorMessage(decodeURIComponent(error));
+    }
+  }, []);
+
   if (!report && !isLoading) {
     return (
       <div className="py-10 text-center">
-        <p className="text-lg">No report data available.</p>
+        {errorMessage ? (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <h3 className="text-red-600 font-semibold text-lg mb-2">Error Generating Report</h3>
+            <p className="text-red-700">{errorMessage}</p>
+            
+            {errorMessage.includes("API key") && (
+              <div className="mt-3 text-sm text-gray-700">
+                <p className="font-semibold">To fix this issue:</p>
+                <ol className="list-decimal list-inside mt-2 text-left">
+                  <li>Open the Settings panel from the top right menu</li>
+                  <li>Enter your Google Gemini API key</li>
+                  <li>Select a compatible model from the dropdown</li>
+                  <li>Save your settings</li>
+                </ol>
+              </div>
+            )}
+          </div>
+        ) : (
+          <p className="text-lg">No report data available.</p>
+        )}
         <button
           onClick={onBack}
           className="mt-4 inline-flex items-center px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90"

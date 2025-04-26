@@ -56,13 +56,29 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
   
   // Function to fetch available models when API key is provided
   const fetchModels = async (apiKey: string) => {
-    if (!apiKey) return;
+    if (!apiKey) {
+      toast({
+        title: "API Key Required",
+        description: "Please enter a Google Gemini API key to fetch available models.",
+        variant: "destructive",
+      });
+      return;
+    }
     
     setIsLoadingModels(true);
     try {
       const models = await fetchAvailableGeminiModels(apiKey);
       if (models && models.length > 0) {
         setAvailableModels(models);
+        
+        // Reset the selected model if it's not in the list
+        const currentModel = settingsForm.getValues().selectedModel;
+        const modelExists = models.some(model => model.id === currentModel);
+        
+        if (!modelExists && models.length > 0) {
+          settingsForm.setValue("selectedModel", models[0].id);
+        }
+        
         toast({
           title: "Models Updated",
           description: `Retrieved ${models.length} available Gemini models.`,
