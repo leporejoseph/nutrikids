@@ -1,18 +1,21 @@
 import { useState } from "react";
 import { FoodItem } from "@shared/schema";
-import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { FOOD_UNITS, MEAL_TYPES, APP_IMAGES } from "@/lib/constants";
-import { Edit, MinusCircle, Check, Apple, Coffee, Pill } from "lucide-react";
+import { FOOD_UNITS, DRINK_UNITS, SUPPLEMENT_UNITS, MEAL_TYPES, APP_IMAGES } from "@/lib/constants";
+import { Edit, MinusCircle, Check, Apple, Coffee, Pill, ChevronDown, ChevronUp, Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface FoodItemListProps {
   items: FoodItem[];
   onDelete: (id: string) => void;
   onUpdate: (id: string, updatedItem: Partial<FoodItem>) => void;
+  onAddFood?: (food: FoodItem) => void;
+  selectedDate?: string;
 }
 
 const editFoodSchema = z.object({
@@ -24,9 +27,22 @@ const editFoodSchema = z.object({
 
 type EditFoodFormValues = z.infer<typeof editFoodSchema>;
 
-export default function FoodItemList({ items, onDelete, onUpdate }: FoodItemListProps) {
+// Food entry schema
+const foodEntrySchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  quantity: z.coerce.number().min(0.25, "Quantity must be at least 0.25"),
+  unit: z.string().min(1, "Unit is required"),
+  mealType: z.string().min(1, "Meal type is required"),
+});
+
+type FoodEntryFormValues = z.infer<typeof foodEntrySchema>;
+
+export default function FoodItemList({ items, onDelete, onUpdate, onAddFood, selectedDate }: FoodItemListProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [isAddingItem, setIsAddingItem] = useState(false);
+  const [entryType, setEntryType] = useState<"food" | "drink" | "supplement">("food");
   
+  // Form for editing existing items
   const form = useForm<EditFoodFormValues>({
     resolver: zodResolver(editFoodSchema),
     defaultValues: {
@@ -34,6 +50,17 @@ export default function FoodItemList({ items, onDelete, onUpdate }: FoodItemList
       quantity: 1,
       unit: "piece",
       mealType: "breakfast",
+    },
+  });
+  
+  // Form for adding new items
+  const addForm = useForm<FoodEntryFormValues>({
+    resolver: zodResolver(foodEntrySchema),
+    defaultValues: {
+      name: "",
+      quantity: 1,
+      unit: entryType === "food" ? "piece" : entryType === "drink" ? "serving" : "pill",
+      mealType: getDefaultMealType(),
     },
   });
 
@@ -53,10 +80,91 @@ export default function FoodItemList({ items, onDelete, onUpdate }: FoodItemList
     setEditingId(null);
   };
 
+  // Get intelligent default meal type based on current time
+  function getDefaultMealType() {
+    const currentHour = new Date().getHours();
+    
+    // Morning hours: 4am to 10am -> breakfast
+    if (currentHour >= 4 && currentHour < 10) {
+      return "breakfast";
+    }
+    // Lunch hours: 10am to 3pm -> lunch
+    else if (currentHour >= 10 && currentHour < 15) {
+      return "lunch";
+    }
+    // Dinner hours: 3pm to 10pm -> dinner
+    else if (currentHour >= 15 && currentHour < 22) {
+      return "dinner";
+    }
+    // Late night or early morning: other times -> snack
+    else {
+      return "snack";
+    }
+  };
+  
   // Format meal type to display the proper label
   const formatMealType = (mealType: string) => {
     const mealTypeObj = MEAL_TYPES.find(meal => meal.value === mealType);
     return mealTypeObj ? mealTypeObj.label : mealType.charAt(0).toUpperCase() + mealType.slice(1);
+  };
+  
+  // Get appropriate units for the selected type
+  const getUnitsForType = () => {
+    switch (entryType) {
+      case "food": return FOOD_UNITS;
+      case "drink": return DRINK_UNITS;
+      case "supplement": return SUPPLEMENT_UNITS;
+      default: return FOOD_UNITS;
+    }
+  };
+  
+  // Get the proper label based on entry type
+  const getItemTypeLabel = () => {
+    switch (entryType) {
+      case "food": return "Food Item";
+      case "drink": return "Drink Item";
+      case "supplement": return "Supplement";
+      default: return "Item";
+    }
+  };
+
+  // Get the proper placeholder based on entry type
+  const getItemPlaceholder = () => {
+    switch (entryType) {
+      case "food": return "e.g., Apple, Chicken nuggets";
+      case "drink": return "e.g., Water, Orange juice";
+      case "supplement": return "e.g., Vitamin D, Iron supplement";
+      default: return "Enter item name";
+    }
+  };
+  
+  // Handle submission of new item form
+  const handleAddItem = (values: FoodEntryFormValues) => {
+    if (onAddFood) {
+      const currentDate = selectedDate || new Date().toISOString().split('T')[0];
+      
+      // Create a food item with the current date
+      const newItem = {
+        id: crypto.randomUUID(),
+        name: values.name,
+        quantity: values.quantity,
+        unit: values.unit,
+        mealType: values.mealType,
+        type: entryType,
+        createdAt: Date.now(),
+        date: currentDate,
+      } as FoodItem;
+      
+      onAddFood(newItem);
+      
+      // Reset form and keep the form open for further additions
+      addForm.reset({
+        name: "",
+        quantity: 1,
+        unit: entryType === "food" ? "piece" : entryType === "drink" ? "serving" : "pill",
+        mealType: addForm.getValues().mealType,
+      });
+    }
   };
 
   if (items.length === 0) {
