@@ -345,14 +345,14 @@ export default function FoodItemList({ items, onDelete, onUpdate, onAddFood, sel
                 <Users className="mr-2 h-4 w-4" /> Child Association
               </FormLabel>
               <Select 
-                value={selectedChildId || ""} 
-                onValueChange={(value) => setSelectedChildId(value === "" ? null : value)}
+                value={selectedChildId || "none"} 
+                onValueChange={(value) => setSelectedChildId(value === "none" ? null : value)}
               >
                 <SelectTrigger className="p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-accent focus:border-accent">
                   <SelectValue placeholder="Select child or leave empty for all" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Children (No specific child)</SelectItem>
+                  <SelectItem value="none">All Children (No specific child)</SelectItem>
                   {childInfo.children.map(child => (
                     <SelectItem key={child.id} value={child.id}>
                       {child.name || `Child ${childInfo.children.findIndex(c => c.id === child.id) + 1}`}
@@ -533,14 +533,14 @@ export default function FoodItemList({ items, onDelete, onUpdate, onAddFood, sel
                             <Users className="mr-1 h-3 w-3" /> Child
                           </label>
                           <Select 
-                            value={selectedChildId || ""} 
-                            onValueChange={(value) => setSelectedChildId(value === "" ? null : value)}
+                            value={selectedChildId || "none"} 
+                            onValueChange={(value) => setSelectedChildId(value === "none" ? null : value)}
                           >
                             <SelectTrigger className="p-2 border border-gray-300 rounded-md text-sm">
                               <SelectValue placeholder="None (applies to all)" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="">None (general item)</SelectItem>
+                              <SelectItem value="none">None (general item)</SelectItem>
                               {childInfo.children.map(child => (
                                 <SelectItem key={child.id} value={child.id}>
                                   {child.name || `Child ${childInfo.children.findIndex(c => c.id === child.id) + 1}`}
