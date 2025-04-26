@@ -25,6 +25,7 @@ export const foodItemSchema = z.object({
   unit: z.string(),
   mealType: z.string(),
   createdAt: z.number(),
+  date: z.string().default(() => new Date().toISOString().split('T')[0]), // Store as YYYY-MM-DD
 });
 
 export type FoodItem = z.infer<typeof foodItemSchema>;

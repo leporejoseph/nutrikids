@@ -21,9 +21,10 @@ type FoodEntryFormValues = z.infer<typeof foodEntrySchema>;
 
 interface FoodEntryFormProps {
   onAddFood: (food: FoodItem) => void;
+  selectedDate?: string; // Optional selected date to associate with new food items
 }
 
-export default function FoodEntryForm({ onAddFood }: FoodEntryFormProps) {
+export default function FoodEntryForm({ onAddFood, selectedDate }: FoodEntryFormProps) {
   const form = useForm<FoodEntryFormValues>({
     resolver: zodResolver(foodEntrySchema),
     defaultValues: {
@@ -35,6 +36,8 @@ export default function FoodEntryForm({ onAddFood }: FoodEntryFormProps) {
   });
 
   const onSubmit = (values: FoodEntryFormValues) => {
+    const currentDate = selectedDate || new Date().toISOString().split('T')[0];
+    
     const newFood: FoodItem = {
       id: crypto.randomUUID(),
       name: values.name,
@@ -42,6 +45,7 @@ export default function FoodEntryForm({ onAddFood }: FoodEntryFormProps) {
       unit: values.unit,
       mealType: values.mealType,
       createdAt: Date.now(),
+      date: currentDate,
     };
     
     onAddFood(newFood);

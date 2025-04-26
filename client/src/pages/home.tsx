@@ -1,8 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { format } from "date-fns";
 import { FoodItem, NutritionReport } from "@shared/schema";
 import Header from "@/components/header";
 import FoodEntryForm from "@/components/food-entry-form";
 import FoodItemList from "@/components/food-item-list";
+import DateSelector from "@/components/date-selector";
 import NutritionReportView from "@/components/report/report-view";
 import { APP_IMAGES } from "@/lib/constants";
 import { getFoodItems, saveFoodItems, getAppSettings, getChildInfo, saveNutritionReport, getNutritionReport } from "@/lib/localStorage";
@@ -17,17 +19,33 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [report, setReport] = useState<NutritionReport | null>(null);
   const [reportError, setReportError] = useState<string | null>(null);
+  const [selectedDate, setSelectedDate] = useState<string>(format(new Date(), 'yyyy-MM-dd'));
   const { toast } = useToast();
 
   useEffect(() => {
     // Load saved food items
     const savedItems = getFoodItems();
-    setFoodItems(savedItems);
+    
+    // Add date field to any items that don't have it (backward compatibility)
+    const itemsWithDates = savedItems.map(item => {
+      if (!item.date) {
+        return { ...item, date: format(new Date(item.createdAt), 'yyyy-MM-dd') };
+      }
+      return item;
+    });
+    
+    setFoodItems(itemsWithDates);
+    saveFoodItems(itemsWithDates); // Save back the items with dates
 
     // Load saved report (if any)
     const savedReport = getNutritionReport();
     setReport(savedReport);
   }, []);
+  
+  // Filter food items by selected date
+  const filteredFoodItems = useMemo(() => {
+    return foodItems.filter(item => item.date === selectedDate);
+  }, [foodItems, selectedDate]);
 
   const handleAddFood = (food: FoodItem) => {
     const updatedItems = [...foodItems, food];
@@ -122,16 +140,19 @@ export default function Home() {
         {view === "food" ? (
           <div id="foodEntryView" className="animate-in fade-in">
             <div className="mb-6">
-              <h2 className="font-inter font-bold text-xl mb-2">Today's Food Tracker</h2>
-              <p className="text-gray-600">Add the food items your child has eaten today</p>
+              <h2 className="font-inter font-bold text-xl mb-2">Food Tracker</h2>
+              <p className="text-gray-600">Add the food items your child has eaten</p>
             </div>
+            
+            {/* Date Selector */}
+            <DateSelector selectedDate={selectedDate} onDateChange={setSelectedDate} />
 
-            <FoodEntryForm onAddFood={handleAddFood} />
+            <FoodEntryForm onAddFood={handleAddFood} selectedDate={selectedDate} />
 
             <div id="foodListContainer" className="mb-6">
-              <h3 className="font-inter font-semibold text-lg mb-2">Today's Food Items</h3>
+              <h3 className="font-inter font-semibold text-lg mb-2">Food Items</h3>
               <FoodItemList 
-                items={foodItems} 
+                items={filteredFoodItems} 
                 onDelete={handleDeleteFood} 
                 onUpdate={handleUpdateFood} 
               />
