@@ -24,6 +24,13 @@ export const foodItemSchema = z.object({
   quantity: z.number(),
   unit: z.string(),
   mealType: z.string(),
+  type: z.enum(["food", "supplement"]).default("food"),
+  supplementInfo: z.object({
+    dosage: z.string().optional(),
+    frequency: z.string().optional(),
+    purpose: z.string().optional(),
+    warnings: z.string().optional(),
+  }).optional(),
   createdAt: z.number(),
   date: z.string().default(() => new Date().toISOString().split('T')[0]), // Store as YYYY-MM-DD
 });
@@ -75,6 +82,20 @@ export const nutritionReportSchema = z.object({
   minerals: z.array(nutrientSchema),
   recommendations: z.array(z.string()),
   foodSuggestions: z.array(z.string()),
+  supplementRecommendations: z.array(z.string()).optional().default([]),
+  supplementCautions: z.array(z.string()).optional().default([]),
 });
 
 export type NutritionReport = z.infer<typeof nutritionReportSchema>;
+
+// Food Plan / Favorites Schema
+export const foodPlanSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  description: z.string().optional(),
+  items: z.array(foodItemSchema),
+  isDefault: z.boolean().default(false),
+  createdAt: z.number(),
+});
+
+export type FoodPlan = z.infer<typeof foodPlanSchema>;
