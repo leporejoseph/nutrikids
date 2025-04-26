@@ -23,9 +23,20 @@ type FoodEntryFormValues = z.infer<typeof foodEntrySchema>;
 interface FoodEntryFormProps {
   onAddFood: (food: FoodItem) => void;
   selectedDate?: string; // Optional selected date to associate with new food items
+  onSavePlan?: () => void; // Function to open the save plan dialog
+  onLoadPlan?: () => void; // Function to open the load plan dialog
+  hasItems?: boolean; // Whether there are items that can be saved as a plan
+  hasPlans?: boolean; // Whether there are saved plans that can be loaded
 }
 
-export default function FoodEntryForm({ onAddFood, selectedDate }: FoodEntryFormProps) {
+export default function FoodEntryForm({ 
+  onAddFood, 
+  selectedDate,
+  onSavePlan,
+  onLoadPlan,
+  hasItems = false,
+  hasPlans = false
+}: FoodEntryFormProps) {
   const [itemType, setItemType] = useState<"food" | "drink" | "supplement">("food");
   const [currentUnits, setCurrentUnits] = useState(FOOD_UNITS);
 
@@ -69,6 +80,7 @@ export default function FoodEntryForm({ onAddFood, selectedDate }: FoodEntryForm
       quantity: values.quantity,
       unit: values.unit,
       mealType: values.mealType,
+      type: values.type, // Include the type field
       createdAt: Date.now(),
       date: currentDate,
     } as FoodItem;
@@ -77,8 +89,9 @@ export default function FoodEntryForm({ onAddFood, selectedDate }: FoodEntryForm
     form.reset({
       name: "",
       quantity: 1,
-      unit: "piece",
+      unit: itemType === "drink" ? "ml" : "piece",
       mealType: form.getValues().mealType,
+      type: itemType,
     });
   };
 
@@ -115,24 +128,30 @@ export default function FoodEntryForm({ onAddFood, selectedDate }: FoodEntryForm
         
         {/* Plan save/load buttons */}
         <div className="plan-buttons flex space-x-2">
-          <Button 
-            type="button" 
-            variant="outline" 
-            size="icon" 
-            className="h-8 w-8"
-            title="Save current items as plan"
-          >
-            <Save className="h-4 w-4" />
-          </Button>
-          <Button 
-            type="button" 
-            variant="outline" 
-            size="icon" 
-            className="h-8 w-8"
-            title="Load saved plan"
-          >
-            <FileInput className="h-4 w-4" />
-          </Button>
+          {hasItems && onSavePlan && (
+            <Button 
+              type="button" 
+              variant="outline" 
+              size="icon" 
+              className="h-8 w-8"
+              title="Save current items as plan"
+              onClick={onSavePlan}
+            >
+              <Save className="h-4 w-4" />
+            </Button>
+          )}
+          {hasPlans && onLoadPlan && (
+            <Button 
+              type="button" 
+              variant="outline" 
+              size="icon" 
+              className="h-8 w-8"
+              title="Load saved plan"
+              onClick={onLoadPlan}
+            >
+              <FileInput className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       </div>
       

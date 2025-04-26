@@ -214,30 +214,15 @@ export default function Home() {
             {/* Date Selector */}
             <DateSelector selectedDate={selectedDate} onDateChange={setSelectedDate} />
             
-            {/* Consolidated Entry Form */}
-            <div className="mt-4 bg-white rounded-lg border border-gray-200 p-4 mb-6">
-              <div className="mb-4">
-                <label htmlFor="entryType" className="block text-sm font-medium text-gray-700 mb-1">
-                  Type
-                </label>
-                <select
-                  id="entryType"
-                  className="w-full border border-gray-300 rounded-md p-2"
-                  value={entryType}
-                  onChange={(e) => setEntryType(e.target.value as "food" | "drink" | "supplement")}
-                >
-                  <option value="food">Food</option>
-                  <option value="drink">Drink</option>
-                  <option value="supplement">Supplement</option>
-                </select>
-              </div>
-              
-              {entryType === "supplement" ? (
-                <SupplementEntryForm onAddSupplement={(supplement) => handleAddFood({...supplement, type: "supplement"})} selectedDate={selectedDate} />
-              ) : (
-                <FoodEntryForm onAddFood={(food) => handleAddFood({...food, type: entryType})} selectedDate={selectedDate} />
-              )}
-            </div>
+            {/* Upgraded Entry Form with consolidated functionality */}
+            <FoodEntryForm 
+              onAddFood={handleAddFood} 
+              selectedDate={selectedDate}
+              onSavePlan={() => setIsCreateDialogOpen(true)}
+              onLoadPlan={() => setIsLoadDialogOpen(true)}
+              hasItems={filteredItems.length > 0}
+              hasPlans={plans.length > 0}
+            />
 
             {/* Consolidated Item List */}
             <div id="itemsListContainer" className="mb-6">
