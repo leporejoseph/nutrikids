@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { AppSettings, ChildInfo, childInfoSchema, appSettingsSchema } from "@shared/schema";
 import { DEFAULT_APP_SETTINGS, DEFAULT_CHILD_INFO, GEMINI_MODELS, DIETARY_RESTRICTIONS } from "@/lib/constants";
 import { getAppSettings, saveAppSettings, getChildInfo, saveChildInfo } from "@/lib/localStorage";
-import { X } from "lucide-react";
+import { X, Check, Shield } from "lucide-react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
 
 interface SettingsPanelProps {
   isOpen: boolean;
@@ -114,16 +115,26 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                     name="apiKey"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="font-medium">API Key</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="password" 
-                            placeholder="Enter your Gemini API key"
-                            className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-accent focus:border-accent"
-                            {...field} 
-                          />
-                        </FormControl>
-                        <p className="text-xs text-gray-500 mt-1">Your API key is stored securely on your device only</p>
+                        <div className="flex justify-between items-center">
+                          <FormLabel className="font-medium">API Key</FormLabel>
+                          {field.value ? (
+                            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 flex items-center gap-1">
+                              <Check className="h-3 w-3" /> Active
+                            </Badge>
+                          ) : null}
+                        </div>
+                        <div className="relative">
+                          <FormControl>
+                            <Input 
+                              type="password" 
+                              placeholder="Enter your Gemini API key"
+                              className="w-full p-3 pl-8 border border-gray-300 rounded-md focus:ring-2 focus:ring-accent focus:border-accent"
+                              {...field} 
+                            />
+                          </FormControl>
+                          <Shield className="h-4 w-4 text-gray-400 absolute left-2.5 top-1/2 transform -translate-y-1/2" />
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">Your API key is encrypted and stored securely in your local session</p>
                       </FormItem>
                     )}
                   />

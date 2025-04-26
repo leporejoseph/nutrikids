@@ -1,9 +1,9 @@
-// API Models
+// API Models - Only Gemini 2.5 models
 export const GEMINI_MODELS = [
-  { id: "gemini-2.0-flash", name: "Gemini 2.0 Flash" },
-  { id: "gemini-2.0-flash-lite", name: "Gemini 2.0 Flash-Lite" },
-  { id: "gemini-1.5-flash", name: "Gemini 1.5 Flash" },
-  { id: "gemini-1.5-flash-8b", name: "Gemini 1.5 Flash-8B" },
+  { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash" },
+  { id: "gemini-2.5-flash-latest", name: "Gemini 2.5 Flash Latest" },
+  { id: "gemini-2.5-pro", name: "Gemini 2.5 Pro" },
+  { id: "gemini-2.5-pro-latest", name: "Gemini 2.5 Pro Latest" },
 ];
 
 // Food Units
@@ -55,7 +55,7 @@ export const DEFAULT_CHILD_INFO = {
 
 export const DEFAULT_APP_SETTINGS = {
   apiKey: "",
-  selectedModel: "gemini-2.0-flash",
+  selectedModel: "gemini-2.5-flash",
   darkMode: false,
   notifications: false,
 };
