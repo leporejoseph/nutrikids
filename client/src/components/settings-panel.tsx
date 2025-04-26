@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { AppSettings, ChildInfo, childInfoSchema, appSettingsSchema } from "@shared/schema";
 import { DEFAULT_APP_SETTINGS, DEFAULT_CHILD_INFO, GEMINI_MODELS, DIETARY_RESTRICTIONS } from "@/lib/constants";
 import { getAppSettings, saveAppSettings, getChildInfo, saveChildInfo } from "@/lib/localStorage";
-import { X, Check, Shield } from "lucide-react";
+import { X, Check, Shield, Save } from "lucide-react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
@@ -102,7 +102,7 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
           </button>
         </div>
 
-        <div className="p-4 overflow-y-auto max-h-[calc(100vh-60px)]">
+        <div className="p-4 pb-24 overflow-y-auto max-h-[calc(100vh-60px)]">
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* API Key Section */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
@@ -350,14 +350,18 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                 </Form>
               </div>
             </div>
-            
-            <Button 
-              type="submit" 
-              className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-3 px-4 rounded-md transition"
-            >
-              Save Settings
-            </Button>
           </form>
+          
+          {/* Floating Save Button */}
+          <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 shadow-md max-w-md mx-auto">
+            <Button 
+              type="button"
+              onClick={handleSubmit}
+              className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-3 px-4 rounded-md transition flex items-center justify-center"
+            >
+              <Save className="w-4 h-4 mr-2" /> Save Settings
+            </Button>
+          </div>
         </div>
       </div>
     </div>
