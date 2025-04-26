@@ -51,6 +51,7 @@ export const childSchema = z.object({
   weightUnit: z.enum(["lb", "kg"]).default("lb"),
   heightUnit: z.enum(["in", "cm"]).default("in"),
   restrictions: z.array(z.string()),
+  isSelected: z.boolean().default(false), // Track which child is currently selected
   createdAt: z.number().default(() => Date.now()),
 });
 
@@ -59,6 +60,7 @@ export type Child = z.infer<typeof childSchema>;
 // Multiple Children Information Schema
 export const childInfoSchema = z.object({
   children: z.array(childSchema).default([]),
+  selectedChildId: z.string().nullable().default(null),
   user_id: z.string().optional(), // Added for Supabase integration
 });
 
