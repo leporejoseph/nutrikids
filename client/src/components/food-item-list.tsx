@@ -337,6 +337,34 @@ export default function FoodItemList({ items, onDelete, onUpdate, onAddFood, sel
               </FormItem>
             )}
           />
+          
+          {/* Child selector in quick add form */}
+          {childInfo?.children && childInfo.children.length > 0 && (
+            <div className="mb-3">
+              <FormLabel className="font-medium flex items-center">
+                <Users className="mr-2 h-4 w-4" /> Child Association
+              </FormLabel>
+              <Select 
+                value={selectedChildId || ""} 
+                onValueChange={(value) => setSelectedChildId(value === "" ? null : value)}
+              >
+                <SelectTrigger className="p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-accent focus:border-accent">
+                  <SelectValue placeholder="Select child or leave empty for all" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">All Children (No specific child)</SelectItem>
+                  {childInfo.children.map(child => (
+                    <SelectItem key={child.id} value={child.id}>
+                      {child.name || `Child ${childInfo.children.findIndex(c => c.id === child.id) + 1}`}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-gray-500 mt-1">
+                Select a specific child or leave empty to add this item for all children
+              </p>
+            </div>
+          )}
 
           <Button 
             type="submit" 
@@ -497,10 +525,42 @@ export default function FoodItemList({ items, onDelete, onUpdate, onAddFood, sel
                           )}
                         />
                       </div>
+                      
+                      {/* Child selector in edit mode */}
+                      {childInfo?.children && childInfo.children.length > 0 && (
+                        <div className="mt-2">
+                          <label className="text-xs font-medium flex items-center mb-1">
+                            <Users className="mr-1 h-3 w-3" /> Child
+                          </label>
+                          <Select 
+                            value={selectedChildId || ""} 
+                            onValueChange={(value) => setSelectedChildId(value === "" ? null : value)}
+                          >
+                            <SelectTrigger className="p-2 border border-gray-300 rounded-md text-sm">
+                              <SelectValue placeholder="None (applies to all)" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="">None (general item)</SelectItem>
+                              {childInfo.children.map(child => (
+                                <SelectItem key={child.id} value={child.id}>
+                                  {child.name || `Child ${childInfo.children.findIndex(c => c.id === child.id) + 1}`}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
                     </form>
                   </Form>
                   
-                  <div className="flex justify-end mt-2">
+                  <div className="flex justify-between mt-2">
+                    <button 
+                      onClick={() => setEditingId(null)}
+                      className="p-2 px-3 bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded-md text-gray-600 text-sm"
+                      type="button"
+                    >
+                      Cancel
+                    </button>
                     <button 
                       onClick={() => handleSave(item.id)}
                       className="save-btn p-2 px-4 bg-green-600 hover:bg-green-700 text-white rounded-md flex items-center"
@@ -525,8 +585,16 @@ export default function FoodItemList({ items, onDelete, onUpdate, onAddFood, sel
                     </div>
                     <div>
                       <div className="font-medium">{item.name}</div>
-                      <div className="text-sm text-gray-500">
+                      <div className="text-sm text-gray-500 flex items-center">
                         {item.quantity} {item.unit} - {formatMealType(item.mealType)}
+                        
+                        {/* Show child pill if associated with a specific child */}
+                        {item.childId && childInfo?.children && (
+                          <div className="ml-2 px-2 py-0.5 text-xs bg-purple-100 text-purple-800 rounded-full flex items-center">
+                            <Users className="h-2.5 w-2.5 mr-1" />
+                            {childInfo.children.find(c => c.id === item.childId)?.name || 'Child'}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
