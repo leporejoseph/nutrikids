@@ -78,102 +78,128 @@ export default function ReportHistoryModal({ isOpen, onClose, onSelectReport }: 
   
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="max-w-4xl">
         <DialogHeader>
           <DialogTitle className="flex items-center">
             <FileText className="mr-2 h-5 w-5" />
-            Report History
+            Nutrition Report History
           </DialogTitle>
+          <p className="text-sm text-gray-500 mt-1">
+            View and load your past nutrition reports
+          </p>
         </DialogHeader>
         
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-          {/* Calendar (left column on larger screens) */}
-          <div className="md:col-span-2 border rounded-md p-2">
-            <Calendar
-              mode="single"
-              selected={selectedDate}
-              onSelect={setSelectedDate}
-              className="border rounded-md"
-              disabled={(date) => {
-                return !datesWithReports.some(d => 
-                  d.getDate() === date.getDate() && 
-                  d.getMonth() === date.getMonth() && 
-                  d.getFullYear() === date.getFullYear()
-                );
-              }}
-            />
-            <div className="text-xs text-center mt-2 text-gray-500">
-              {datesWithReports.length} dates with reports
+        <div className="flex flex-col md:flex-row gap-6">
+          {/* Left side: Calendar */}
+          <div className="md:w-1/3">
+            <div className="bg-white rounded-lg border shadow-sm p-4">
+              <h3 className="font-medium text-sm mb-3 text-gray-700">Select Date</h3>
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={setSelectedDate}
+                className="rounded-md mx-auto"
+                disabled={(date) => {
+                  return !datesWithReports.some(d => 
+                    d.getDate() === date.getDate() && 
+                    d.getMonth() === date.getMonth() && 
+                    d.getFullYear() === date.getFullYear()
+                  );
+                }}
+              />
+              <div className="mt-2 text-center">
+                <div className="text-xs text-gray-500 mb-2">
+                  {datesWithReports.length} dates with reports
+                </div>
+                
+                {selectedDate && (
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setSelectedDate(undefined)}
+                    className="text-xs"
+                  >
+                    Show All Reports
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
           
-          {/* Report list (right column) */}
-          <div className="md:col-span-3 border rounded-md">
-            <div className="p-2 border-b bg-gray-50 flex justify-between items-center">
-              <h3 className="font-medium text-sm flex items-center">
-                <CalendarIcon className="mr-1 h-4 w-4 text-gray-500" />
-                {selectedDate ? formatDate(format(selectedDate, 'yyyy-MM-dd')) : 'All Reports'}
-              </h3>
-              {selectedDate && (
-                <button 
-                  onClick={() => setSelectedDate(undefined)}
-                  className="text-xs text-blue-500 hover:underline"
-                >
-                  Show all
-                </button>
-              )}
-            </div>
-            
-            <ScrollArea className="h-[300px] p-2">
-              {filteredReports.length === 0 ? (
-                <div className="p-4 text-center text-gray-500">
-                  No reports found for the selected date
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {filteredReports.map((item) => (
-                    <div 
-                      key={item.id}
-                      className="p-3 border rounded-md hover:bg-blue-50 cursor-pointer transition"
-                      onClick={() => handleSelectReport(item.report)}
-                    >
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <div className="font-medium flex items-center">
-                            <span className="mr-2">{formatDate(item.reportDate)}</span>
-                            <span className="text-xs text-gray-500">{formatTime(item.analysisDate)}</span>
-                          </div>
-                          <div className="mt-1 flex items-center space-x-3 text-sm">
+          {/* Right side: Reports list */}
+          <div className="md:w-2/3">
+            <div className="bg-white rounded-lg border shadow-sm overflow-hidden">
+              <div className="p-3 border-b bg-gray-50 flex justify-between items-center">
+                <h3 className="font-medium flex items-center">
+                  <CalendarIcon className="mr-2 h-4 w-4 text-purple-500" />
+                  {selectedDate ? formatDate(format(selectedDate, 'yyyy-MM-dd')) : 'All Available Reports'}
+                </h3>
+                <span className="text-sm text-gray-500">{filteredReports.length} reports</span>
+              </div>
+              
+              <ScrollArea className="h-[350px]">
+                {filteredReports.length === 0 ? (
+                  <div className="p-8 text-center">
+                    <FileText className="h-10 w-10 text-gray-300 mx-auto mb-3" />
+                    <p className="text-gray-500">
+                      No reports found for the selected date
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid gap-2 p-3">
+                    {filteredReports.map((item) => (
+                      <div 
+                        key={item.id}
+                        className="p-4 border rounded-md hover:border-purple-300 hover:bg-purple-50 cursor-pointer transition-all"
+                        onClick={() => handleSelectReport(item.report)}
+                      >
+                        <div className="flex justify-between items-start">
+                          <div className="space-y-2">
                             <div className="flex items-center">
-                              <TrendingUp className="w-3 h-3 mr-1 text-blue-500" />
-                              <span>Score: {item.nutritionScore}%</span>
+                              <span className="font-medium">{formatDate(item.reportDate)}</span>
+                              <span className="ml-2 text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
+                                {formatTime(item.analysisDate)}
+                              </span>
                             </div>
-                            <div className="flex items-center">
-                              <Zap className="w-3 h-3 mr-1 text-amber-500" />
-                              <span>Calories: {item.report.calories}/{item.report.caloriesTarget}</span>
+                            
+                            <div className="flex flex-wrap gap-3">
+                              <div className="flex items-center px-2 py-1 bg-blue-50 rounded text-sm">
+                                <TrendingUp className="w-3.5 h-3.5 mr-1.5 text-blue-500" />
+                                <span className="text-blue-700">Score: <span className="font-semibold">{item.nutritionScore}%</span></span>
+                              </div>
+                              
+                              <div className="flex items-center px-2 py-1 bg-amber-50 rounded text-sm">
+                                <Zap className="w-3.5 h-3.5 mr-1.5 text-amber-500" />
+                                <span className="text-amber-700">
+                                  Calories: <span className="font-semibold">{item.report.calories}</span>
+                                  /<span className="text-amber-600">{item.report.caloriesTarget}</span>
+                                </span>
+                              </div>
                             </div>
                           </div>
+                          
+                          <button
+                            onClick={(e) => handleDeleteReport(item.id, e)}
+                            className="text-gray-400 hover:text-red-500 hover:bg-red-50 p-1.5 rounded-full transition-colors ml-2"
+                            title="Delete report"
+                          >
+                            <Trash2 className="h-5 w-5" />
+                          </button>
                         </div>
-                        <button
-                          onClick={(e) => handleDeleteReport(item.id, e)}
-                          className="text-red-500 hover:bg-red-50 p-1 rounded-full transition"
-                          title="Delete report"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </ScrollArea>
+                    ))}
+                  </div>
+                )}
+              </ScrollArea>
+            </div>
           </div>
         </div>
         
-        <DialogFooter className="flex justify-between items-center">
+        <DialogFooter className="flex justify-between items-center mt-4">
           <Button 
-            variant="destructive" 
-            size="sm" 
+            variant="outline" 
+            size="sm"
+            className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
             onClick={() => {
               if (confirm("Are you sure you want to clear all report history? This action cannot be undone.")) {
                 clearReportHistory();

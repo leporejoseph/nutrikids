@@ -284,13 +284,24 @@ export default function Home() {
             </div>
 
             {filteredItems.length > 0 && (
-              <div id="generateReportBtnContainer" className="mt-6">
+              <div id="generateReportBtnContainer" className="mt-6 space-y-2">
                 <Button 
                   onClick={handleGenerateReport}
                   className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-white font-bold py-4 px-6 rounded-md shadow-md transition transform hover:scale-[1.02]"
                 >
                   <ChartPie className="mr-2 h-4 w-4" /> Generate Nutrition Report
                 </Button>
+                
+                {/* History button - only show if there are reports in history */}
+                {getReportHistory().length > 0 && (
+                  <Button 
+                    onClick={() => setIsHistoryModalOpen(true)}
+                    className="w-full bg-purple-700 hover:bg-purple-800 text-white py-3 px-6 rounded-md"
+                    variant="outline"
+                  >
+                    <History className="mr-2 h-4 w-4" /> View Report History
+                  </Button>
+                )}
               </div>
             )}
 
@@ -473,16 +484,7 @@ export default function Home() {
         />
       </main>
 
-      {/* History button (fixed at bottom-right) */}
-      {getReportHistory().length > 0 && (
-        <button
-          onClick={() => setIsHistoryModalOpen(true)}
-          className="fixed bottom-4 right-4 bg-purple-700 text-white p-3 rounded-full shadow-lg hover:bg-purple-800 transition-colors"
-          title="View Report History"
-        >
-          <History className="h-5 w-5" />
-        </button>
-      )}
+
     </div>
   );
 }
