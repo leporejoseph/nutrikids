@@ -263,7 +263,7 @@ export default function FoodEntryForm({ onAddFood, selectedDate }: FoodEntryForm
             type="submit" 
             className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-3 px-4 rounded-md transition transform hover:scale-[1.02]"
           >
-            <Plus className="mr-2 h-4 w-4" /> Add Food Item
+            <Plus className="mr-2 h-4 w-4" /> Add {entryType === "food" ? "Food" : entryType === "drink" ? "Drink" : "Supplement"}
           </Button>
         </form>
       </Form>
