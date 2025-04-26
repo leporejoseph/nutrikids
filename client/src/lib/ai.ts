@@ -285,8 +285,26 @@ function createAnalysisPrompt(foodItems: FoodItem[], childInfo: ChildInfo, histo
   // Items to use for history analysis
   const itemsForHistory = historyItems || foodItems;
   
+  // Get current date
+  const currentDate = foodItems[0]?.date || new Date().toISOString().split('T')[0];
+  const currentDateObj = new Date(currentDate);
+  
+  // Calculate date 5 days ago for filtering history
+  const fiveDaysAgo = new Date(currentDateObj);
+  fiveDaysAgo.setDate(fiveDaysAgo.getDate() - 5);
+  const fiveDaysAgoStr = fiveDaysAgo.toISOString().split('T')[0];
+  
+  // Filter history items to only include those from the last 5 days
+  const recentHistoryItems = itemsForHistory.filter(item => {
+    const itemDate = item.date || new Date(item.createdAt).toISOString().split('T')[0];
+    // Include if date is between 5 days ago and current date, but not the current date itself
+    return itemDate >= fiveDaysAgoStr && itemDate < currentDate;
+  });
+  
+  console.log(`Including ${recentHistoryItems.length} items from the previous 5 days in nutrition analysis`);
+  
   // Group food items by date
-  const foodItemsByDate = itemsForHistory.reduce((acc: {[key: string]: FoodItem[]}, item) => {
+  const foodItemsByDate = recentHistoryItems.reduce((acc: {[key: string]: FoodItem[]}, item) => {
     const date = item.date || new Date(item.createdAt).toISOString().split('T')[0];
     if (!acc[date]) {
       acc[date] = [];
@@ -347,21 +365,21 @@ ${foodItemsList}
 CURRENT SUPPLEMENTS:
 ${supplementsList}
 
-HISTORICAL FOOD DATA BY DATE:
+HISTORICAL FOOD DATA BY DATE (PREVIOUS 5 DAYS):
 ${historyJson}
 
 ANALYSIS INSTRUCTIONS:
-1. Focus primarily on analyzing the CURRENT DAY's food intake.
+1. Focus primarily on analyzing the CURRENT DAY's food intake for the nutrition values.
 2. Determine the approximate caloric content and macronutrient breakdown (proteins, carbohydrates, fats, fiber) based on standard nutritional databases.
 3. Estimate the vitamin content (focusing on vitamins A, C, D, E, B vitamins).
 4. Estimate the mineral content (focusing on calcium, iron, zinc, potassium, sodium, magnesium).
 5. Compare the intake to age-appropriate recommended daily allowances for ${ageGroup}.
 6. Calculate a "nutrition score" as a percentage representing how well the diet meets the child's nutritional needs.
-7. Review any historical data provided to identify patterns or nutritional gaps over time.
-8. Consider seasonal eating patterns or recurring food preferences if evident in the historical data.
-9. Provide specific improvement recommendations based on both current and historical intake.
-10. Suggest 4-5 specific foods that would complement the current intake to improve nutritional balance.
-11. Provide 2-3 specific supplement recommendations if appropriate based on nutritional gaps.
+7. IMPORTANT: Thoroughly review the historical data (previous 5 days) to identify patterns, trends, or recurring nutritional gaps.
+8. IMPORTANT: Your recommendations and tips should specifically reference patterns observed in the historical data.
+9. IMPORTANT: Provide personalized improvement recommendations based on BOTH current day's intake AND historical eating patterns.
+10. Suggest 4-5 specific foods that would complement the current intake to improve nutritional balance, considering historical preferences.
+11. Provide 2-3 specific supplement recommendations if appropriate based on consistent nutritional gaps observed over time.
 12. Include 2-3 cautions about supplement usage, potential interactions, or considerations.
 
 IMPORTANT: Format your response as a valid JSON object using the schema below. Do not include any explanations, markdown formatting, or text outside the JSON object. The response must be directly parseable as JSON:
