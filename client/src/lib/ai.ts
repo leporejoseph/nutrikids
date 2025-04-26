@@ -19,23 +19,26 @@ export async function generateNutritionReport({
       throw new Error("API key is required. Please add it in the settings.");
     }
 
-    const genAI = new GoogleGenAI(apiKey);
-    const geminiModel = genAI.getGenerativeModel({ model });
-
+    const genAI = new GoogleGenAI({ apiKey });
+    
     // Create a detailed prompt
     const prompt = createAnalysisPrompt(foodItems, childInfo);
 
     // Make the API call
-    const result = await geminiModel.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
+    const result = await genAI.models.generateContent({
+      model: model,
+      contents: prompt
+    });
+
+    // Get the response text from the API response
+    const responseText = result.response.text();
 
     try {
-      const parsedReport = JSON.parse(text);
+      const parsedReport = JSON.parse(responseText);
       return parsedReport as NutritionReport;
     } catch (jsonError) {
       console.error("Failed to parse Gemini response as JSON:", jsonError);
-      console.log("Raw response:", text);
+      console.log("Raw response:", responseText);
       throw new Error("Failed to parse nutrition data. Please try again.");
     }
   } catch (error) {
