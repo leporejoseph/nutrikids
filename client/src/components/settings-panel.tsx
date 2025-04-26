@@ -384,9 +384,8 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                                     >
                                       {child.name || `Child ${index + 1}`}
                                       {field.value.length > 1 && (
-                                        <button
-                                          type="button"
-                                          className="text-red-500 hover:bg-red-100 rounded-full p-1 ml-1"
+                                        <span
+                                          className="text-red-500 hover:bg-red-100 rounded-full p-1 ml-1 cursor-pointer inline-flex items-center"
                                           onClick={(e) => {
                                             e.stopPropagation();
                                             const newChildren = field.value.filter(c => c.id !== child.id);
@@ -396,8 +395,8 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                                             }
                                           }}
                                         >
-                                          <Trash className="h-3 w-3" />
-                                        </button>
+                                          <X className="h-3 w-3" />
+                                        </span>
                                       )}
                                     </Button>
                                   ))}
