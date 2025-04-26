@@ -1,4 +1,4 @@
-import { FoodItem, ChildInfo, AppSettings, NutritionReport, FoodPlan } from "@shared/schema";
+import { FoodItem, ChildInfo, AppSettings, NutritionReport, FoodPlan, ReportHistoryItem } from "@shared/schema";
 import { DEFAULT_APP_SETTINGS, DEFAULT_CHILD_INFO, STORAGE_KEYS } from "./constants";
 
 // Simple encryption function for API keys
@@ -157,7 +157,22 @@ export function getNutritionReport(): NutritionReport | null {
 
 export function saveNutritionReport(report: NutritionReport): void {
   try {
+    // Ensure the report has the required fields for history
+    if (!report.id) {
+      report.id = crypto.randomUUID();
+    }
+    if (!report.analysisDate) {
+      report.analysisDate = Date.now();
+    }
+    if (!report.reportDate) {
+      report.reportDate = new Date().toISOString().split('T')[0];
+    }
+    
+    // Save the current report
     localStorage.setItem(STORAGE_KEYS.NUTRITION_REPORT, JSON.stringify(report));
+    
+    // Also save to history
+    saveReportToHistory(report);
   } catch (error) {
     console.error("Error saving nutrition report to localStorage:", error);
   }
@@ -168,6 +183,73 @@ export function clearNutritionReport(): void {
     localStorage.removeItem(STORAGE_KEYS.NUTRITION_REPORT);
   } catch (error) {
     console.error("Error clearing nutrition report from localStorage:", error);
+  }
+}
+
+// Report history management
+export function getReportHistory(): ReportHistoryItem[] {
+  try {
+    const history = localStorage.getItem(STORAGE_KEYS.REPORT_HISTORY);
+    return history ? JSON.parse(history) : [];
+  } catch (error) {
+    console.error("Error retrieving report history from localStorage:", error);
+    return [];
+  }
+}
+
+export function saveReportToHistory(report: NutritionReport): void {
+  try {
+    const history = getReportHistory();
+    
+    // Create a history item from the report
+    const historyItem: ReportHistoryItem = {
+      id: report.id || crypto.randomUUID(),
+      reportDate: report.reportDate || new Date().toISOString().split('T')[0],
+      analysisDate: report.analysisDate || Date.now(),
+      nutritionScore: report.nutritionScore,
+      report: report
+    };
+    
+    // Check if this report already exists in history (by ID)
+    const existingIndex = history.findIndex(item => item.id === historyItem.id);
+    
+    if (existingIndex >= 0) {
+      // Update existing report
+      history[existingIndex] = historyItem;
+    } else {
+      // Add new report to history
+      history.push(historyItem);
+    }
+    
+    // Sort history by report date (newest first)
+    history.sort((a, b) => new Date(b.reportDate).getTime() - new Date(a.reportDate).getTime());
+    
+    // Remove old reports (older than 1 year)
+    const oneYearAgo = Date.now() - 365 * 24 * 60 * 60 * 1000;
+    const filteredHistory = history.filter(item => item.analysisDate > oneYearAgo);
+    
+    // Save updated history
+    localStorage.setItem(STORAGE_KEYS.REPORT_HISTORY, JSON.stringify(filteredHistory));
+  } catch (error) {
+    console.error("Error saving report to history in localStorage:", error);
+  }
+}
+
+export function deleteReportFromHistory(reportId: string): void {
+  try {
+    const history = getReportHistory();
+    const updatedHistory = history.filter(item => item.id !== reportId);
+    localStorage.setItem(STORAGE_KEYS.REPORT_HISTORY, JSON.stringify(updatedHistory));
+  } catch (error) {
+    console.error("Error deleting report from history in localStorage:", error);
+  }
+}
+
+export function clearReportHistory(): void {
+  try {
+    localStorage.removeItem(STORAGE_KEYS.REPORT_HISTORY);
+  } catch (error) {
+    console.error("Error clearing report history from localStorage:", error);
   }
 }
 
