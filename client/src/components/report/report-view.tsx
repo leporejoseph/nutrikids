@@ -78,7 +78,7 @@ export default function NutritionReportView({ report, isLoading, onBack, error }
 
   return (
     <div className="animate-in fade-in">
-      {/* Only show header and back button if no parent handles it and this is the main report view */}
+      {/* Only show header and back button if it's not being used in MultiChildReportTabs */}
       {onBack && typeof onBack === 'function' && onBack.toString() !== '() => {}' && (
         <div className="flex justify-between items-center mb-4">
           <button 

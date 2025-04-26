@@ -402,26 +402,26 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                                       </div>
                                       
                                       <div className="grid grid-cols-2 gap-4 mb-4">
-                                        {/* Date of Birth Field */}
+                                        {/* Date of Birth Field - Updated with consistent styling */}
                                         <div>
                                           <FormLabel className="font-medium block mb-2">Date of Birth</FormLabel>
                                           <div className="relative">
                                             <Popover>
                                               <PopoverTrigger asChild>
                                                 <Button
-                                                  variant={"outline"}
+                                                  variant="outline"
+                                                  size="sm"
                                                   className={cn(
-                                                    "w-full justify-start text-left font-normal h-auto p-3 border border-gray-300 rounded-md",
-                                                    !child.dateOfBirth ? "text-muted-foreground" : "text-foreground",
-                                                    "hover:bg-accent/10 hover:border-accent/50 focus:ring-2 focus:ring-accent focus:border-accent"
+                                                    "w-full h-10 justify-start text-left font-normal border border-gray-300 rounded-md",
+                                                    !child.dateOfBirth ? "text-muted-foreground" : "text-foreground"
                                                   )}
                                                 >
-                                                  <CalendarIcon className="mr-2 h-4 w-4 text-accent" />
-                                                  {child.dateOfBirth ? format(parseISO(child.dateOfBirth), 'PPP') : <span>Select birth date</span>}
+                                                  <CalendarIcon className="mr-2 h-4 w-4" />
+                                                  {child.dateOfBirth ? format(parseISO(child.dateOfBirth), 'PPP') : <span>Choose date</span>}
                                                 </Button>
                                               </PopoverTrigger>
-                                              <PopoverContent className="w-auto p-0 border border-gray-200 rounded-md shadow-md">
-                                                <DayPicker
+                                              <PopoverContent className="w-auto p-0" align="start">
+                                                <Calendar
                                                   mode="single"
                                                   selected={child.dateOfBirth ? parseISO(child.dateOfBirth) : undefined}
                                                   onSelect={(date) => {
@@ -432,34 +432,10 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                                                     };
                                                     childInfoForm.setValue('children', newChildren);
                                                   }}
-                                                  captionLayout="dropdown-buttons"
                                                   fromYear={1990}
                                                   toYear={new Date().getFullYear()}
                                                   disabled={{ after: new Date() }}
-                                                  showOutsideDays
-                                                  fixedWeeks
-                                                  ISOWeek
-                                                  className="rounded-md border-none p-3"
-                                                  classNames={{
-                                                    months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
-                                                    month: "space-y-4",
-                                                    caption: "flex justify-center pt-1 relative items-center",
-                                                    caption_label: "text-sm font-medium",
-                                                    nav: "space-x-1 flex items-center",
-                                                    nav_button: "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100",
-                                                    nav_button_previous: "absolute left-1",
-                                                    nav_button_next: "absolute right-1",
-                                                    table: "w-full border-collapse space-y-1",
-                                                    head_row: "flex",
-                                                    head_cell: "text-muted-foreground rounded-md w-8 font-normal text-[0.8rem]",
-                                                    row: "flex w-full mt-2",
-                                                    cell: "relative p-0 text-center text-sm focus-within:relative focus-within:z-20 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md",
-                                                    day: "h-8 w-8 p-0 font-normal aria-selected:opacity-100",
-                                                    day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
-                                                    day_range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground",
-                                                    day_today: "bg-accent/50 text-accent-foreground",
-                                                    day_outside: "text-muted-foreground opacity-50"
-                                                  }}
+                                                  initialFocus
                                                 />
                                               </PopoverContent>
                                             </Popover>
