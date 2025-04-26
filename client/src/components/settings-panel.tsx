@@ -140,12 +140,7 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
       // Update app state
       setSettings(data);
       
-      // Apply dark mode setting immediately if it changed
-      if (data.darkMode) {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
+      // Dark mode handling removed as requested
       
       toast({
         title: "Settings Saved",
@@ -309,27 +304,7 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                     )}
                   />
                   
-                  {/* Dark Mode Toggle */}
-                  <FormField
-                    control={settingsForm.control}
-                    name="darkMode"
-                    render={({ field }) => (
-                      <FormItem className="mt-4 flex flex-row items-center justify-between rounded-lg border p-3">
-                        <div className="space-y-0.5">
-                          <FormLabel className="font-medium">Dark Mode</FormLabel>
-                          <p className="text-xs text-gray-500">
-                            Toggle dark mode for the application
-                          </p>
-                        </div>
-                        <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
+                  {/* Dark Mode removed as requested */}
                 </Form>
               </div>
             </div>
