@@ -13,7 +13,7 @@ import { APP_IMAGES } from "@/lib/constants";
 import { getFoodItems, saveFoodItems, getAppSettings, getChildInfo, saveNutritionReport, getNutritionReport, getFoodPlans, saveFoodPlan, deleteFoodPlan, getReportHistory } from "@/lib/storage";
 import { Button } from "@/components/ui/button";
 import { ChartPie, Apple, Pill, BookmarkPlus, Save, BookmarkCheck, Star, Coffee, Upload, Trash2, MinusCircle, History, FileText, Users, Bookmark, Search } from "lucide-react";
-import { generateNutritionReport } from "@/lib/ai";
+import { generateNutritionReport, generateMultiChildReport } from "@/lib/ai";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";

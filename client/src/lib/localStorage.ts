@@ -1,5 +1,5 @@
 import { FoodItem, ChildInfo, AppSettings, NutritionReport, FoodPlan, ReportHistoryItem, MultiChildReport } from "@shared/schema";
-import { DEFAULT_APP_SETTINGS, DEFAULT_CHILD_INFO, STORAGE_KEYS } from "./constants";
+import { DEFAULT_APP_SETTINGS, DEFAULT_CHILD_INFO, DEFAULT_CHILD, STORAGE_KEYS } from "./constants";
 
 // Simple encryption function for API keys
 function encryptApiKey(key: string): string {
@@ -58,7 +58,7 @@ export function getChildInfo(): ChildInfo {
       
       // Handle migration of data from older versions that don't have units
       if (parsedInfo.children?.length > 0) {
-        parsedInfo.children.forEach(child => {
+        parsedInfo.children.forEach((child: any) => {
           if (!child.weightUnit) {
             child.weightUnit = DEFAULT_CHILD.weightUnit;
           }

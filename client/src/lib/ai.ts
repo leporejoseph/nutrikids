@@ -1,5 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
-import type { NutritionReport, FoodItem, ChildInfo } from "@shared/schema";
+import type { NutritionReport, FoodItem, ChildInfo, MultiChildReport, Child } from "@shared/schema";
 
 // Define model interface
 export interface GeminiModel {
@@ -161,6 +161,8 @@ function getMockNutritionReport(foodItems: FoodItem[], childInfo: ChildInfo): Nu
   
   return {
     id: crypto.randomUUID(),
+    childId: selectedChild.id,
+    childName: selectedChild.name,
     calories: 1200,
     caloriesTarget: 1800,
     nutritionScore: 65,
@@ -492,6 +494,166 @@ function getAgeGroup(age: number | null): string {
     return "older children (9-13 years)";
   } else {
     return "adolescents (14-18 years)";
+  }
+}
+
+/**
+ * Generates nutrition reports for multiple children in parallel
+ * This function processes reports for multiple children at once
+ */
+export async function generateMultiChildReport({
+  foodItems,
+  historyItems,
+  childInfo,
+  apiKey,
+  model,
+}: GenerateReportParams): Promise<MultiChildReport> {
+  try {
+    // Validate inputs
+    if (!foodItems || foodItems.length === 0) {
+      throw new Error("No food items to analyze. Please add at least one food item.");
+    }
+    
+    if (!apiKey) {
+      throw new Error("Google Gemini API key is required. Please add it in the settings.");
+    }
+    
+    if (!model) {
+      throw new Error("No AI model selected. Please select a model in the settings.");
+    }
+
+    // Get selected children from childInfo
+    const selectedChildren = childInfo.children.filter(child => child.isSelected);
+    
+    if (selectedChildren.length === 0) {
+      throw new Error("No children selected for analysis. Please select at least one child in settings.");
+    }
+    
+    console.log(`Generating reports for ${selectedChildren.length} children in parallel...`);
+    
+    // For test/development key, return mock data
+    if (apiKey === 'test123' || apiKey === 'test' || apiKey === 'development') {
+      console.log("Using test key - returning placeholder multi-child report");
+      const mockReports: Record<string, NutritionReport> = {};
+      
+      for (const child of selectedChildren) {
+        // Create a modified childInfo with only this child selected
+        const singleChildInfo: ChildInfo = {
+          ...childInfo,
+          selectedChildId: child.id
+        };
+        
+        // Get mock report for this child
+        const childReport = getMockNutritionReport(foodItems, singleChildInfo);
+        mockReports[child.id] = childReport;
+      }
+      
+      return {
+        id: crypto.randomUUID(),
+        analysisDate: Date.now(),
+        reportDate: new Date().toISOString().split('T')[0],
+        childReports: mockReports
+      };
+    }
+    
+    // Create individual reports for each child in parallel
+    const reportPromises = selectedChildren.map(async (child) => {
+      try {
+        // Create a modified childInfo with only this child selected
+        const singleChildInfo: ChildInfo = {
+          ...childInfo,
+          selectedChildId: child.id
+        };
+        
+        // Get food items for this child from the current day
+        const currentDate = foodItems[0]?.date || new Date().toISOString().split('T')[0];
+        
+        // Filter food items that are associated with this child
+        const childFoodItems = foodItems.filter(item => {
+          // Include item if:
+          // 1. It has no childId (applies to all children)
+          // 2. The item's childId matches this child's id 
+          // 3. The item's childIds array includes this child's id
+          return !item.childId || 
+                 item.childId === child.id || 
+                 (item.childIds && item.childIds.includes(child.id));
+        });
+        
+        if (childFoodItems.length === 0) {
+          console.log(`No food items found for child ${child.name || child.id}`);
+          // Return a special "no data" report
+          return [child.id, {
+            id: crypto.randomUUID(),
+            childId: child.id,
+            childName: child.name,
+            calories: 0,
+            caloriesTarget: 0,
+            nutritionScore: 0,
+            analysisDate: Date.now(),
+            reportDate: currentDate,
+            macronutrients: [],
+            vitamins: [],
+            minerals: [],
+            recommendations: ["No food data available for this child."],
+            foodSuggestions: [],
+            supplementRecommendations: [],
+            supplementCautions: []
+          }];
+        }
+        
+        console.log(`Generating report for child ${child.name || child.id} with ${childFoodItems.length} food items`);
+        
+        // Generate report for this child
+        const report = await generateNutritionReport({
+          foodItems: childFoodItems,
+          historyItems,
+          childInfo: singleChildInfo,
+          apiKey,
+          model
+        });
+        
+        return [child.id, report];
+      } catch (error) {
+        console.error(`Error generating report for child ${child.name || child.id}:`, error);
+        // Return an error report
+        return [child.id, {
+          id: crypto.randomUUID(),
+          childId: child.id,
+          childName: child.name,
+          calories: 0,
+          caloriesTarget: 0,
+          nutritionScore: 0,
+          analysisDate: Date.now(),
+          reportDate: new Date().toISOString().split('T')[0],
+          macronutrients: [],
+          vitamins: [],
+          minerals: [],
+          recommendations: [`Error generating report: ${error instanceof Error ? error.message : 'Unknown error'}`],
+          foodSuggestions: [],
+          supplementRecommendations: [],
+          supplementCautions: []
+        }];
+      }
+    });
+    
+    // Wait for all reports to complete
+    const reports = await Promise.all(reportPromises);
+    
+    // Convert array of [childId, report] to a Record<childId, report>
+    const childReports: Record<string, NutritionReport> = {};
+    reports.forEach(([childId, report]) => {
+      childReports[childId as string] = report as NutritionReport;
+    });
+    
+    return {
+      id: crypto.randomUUID(),
+      analysisDate: Date.now(),
+      reportDate: new Date().toISOString().split('T')[0],
+      childReports
+    };
+  } catch (error: any) {
+    console.error("Error generating multi-child nutrition report:", error);
+    throw error;
   }
 }
 
