@@ -608,28 +608,88 @@ export default function FoodItemList({ items, onDelete, onUpdate, onAddFood, sel
                         />
                       </div>
                       
-                      {/* Child selector in edit mode */}
+                      {/* Child multi-selector in edit mode */}
                       {childInfo?.children && childInfo.children.length > 0 && (
                         <div className="mt-2">
                           <label className="text-xs font-medium flex items-center mb-1">
-                            <Users className="mr-1 h-3 w-3" /> Child
+                            <Users className="mr-1 h-3 w-3" /> Children
                           </label>
-                          <Select 
-                            value={selectedChildId || "none"} 
-                            onValueChange={(value) => setSelectedChildId(value === "none" ? null : value)}
+                          
+                          <div 
+                            className="p-2 border border-gray-300 rounded-md cursor-pointer flex items-center justify-between text-sm"
+                            onClick={() => setIsChildDropdownOpen(!isChildDropdownOpen)}
                           >
-                            <SelectTrigger className="p-2 border border-gray-300 rounded-md text-sm">
-                              <SelectValue placeholder="None (applies to all)" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="none">None (general item)</SelectItem>
-                              {childInfo.children.map(child => (
-                                <SelectItem key={child.id} value={child.id}>
-                                  {child.name || `Child ${childInfo.children.findIndex(c => c.id === child.id) + 1}`}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                            <div className="flex-1 truncate">
+                              {selectedChildIds.length === 0 ? (
+                                <span className="text-gray-500">None (applies to all)</span>
+                              ) : (
+                                <div className="flex flex-wrap gap-1">
+                                  {selectedChildIds.map(id => {
+                                    const child = childInfo.children.find(c => c.id === id);
+                                    const childName = child?.name || `Child ${childInfo.children.findIndex(c => c.id === id) + 1}`;
+                                    return (
+                                      <span key={id} className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
+                                        {childName}
+                                      </span>
+                                    );
+                                  })}
+                                </div>
+                              )}
+                            </div>
+                            <ChevronDown className={`h-4 w-4 transition-transform ${isChildDropdownOpen ? 'rotate-180' : ''}`} />
+                          </div>
+                          
+                          {/* Dropdown menu */}
+                          {isChildDropdownOpen && (
+                            <div className="absolute mt-1 p-2 bg-white border border-gray-200 rounded-md shadow-md z-10">
+                              <div className="mb-2 px-2">
+                                <div className="flex justify-between items-center">
+                                  <span className="text-sm font-medium">Select Children</span>
+                                  <button 
+                                    type="button" 
+                                    className="text-xs text-primary hover:underline"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      // Toggle all: if all selected, clear. Otherwise, select all
+                                      if (selectedChildIds.length === childInfo.children.length) {
+                                        setSelectedChildIds([]);
+                                      } else {
+                                        setSelectedChildIds(childInfo.children.map(c => c.id));
+                                      }
+                                    }}
+                                  >
+                                    {selectedChildIds.length === childInfo.children.length ? 'Clear All' : 'Select All'}
+                                  </button>
+                                </div>
+                              </div>
+                              
+                              {/* Child list */}
+                              <div className="max-h-40 overflow-y-auto">
+                                {childInfo.children.map(child => {
+                                  const isSelected = selectedChildIds.includes(child.id);
+                                  return (
+                                    <div 
+                                      key={child.id}
+                                      className={`px-2 py-1.5 flex items-center space-x-2 cursor-pointer hover:bg-gray-100 rounded-sm ${isSelected ? 'bg-gray-50' : ''}`}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (isSelected) {
+                                          setSelectedChildIds(selectedChildIds.filter(id => id !== child.id));
+                                        } else {
+                                          setSelectedChildIds([...selectedChildIds, child.id]);
+                                        }
+                                      }}
+                                    >
+                                      <div className={`w-4 h-4 border rounded flex items-center justify-center ${isSelected ? 'bg-primary border-primary' : 'border-gray-300'}`}>
+                                        {isSelected && <Check className="h-3 w-3 text-white" />}
+                                      </div>
+                                      <span className="flex-1">{child.name || `Child ${childInfo.children.findIndex(c => c.id === child.id) + 1}`}</span>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       )}
                     </form>
@@ -670,12 +730,29 @@ export default function FoodItemList({ items, onDelete, onUpdate, onAddFood, sel
                       <div className="text-sm text-gray-500 flex items-center">
                         {item.quantity} {item.unit} - {formatMealType(item.mealType)}
                         
-                        {/* Show child pill if associated with a specific child */}
-                        {item.childId && childInfo?.children && (
-                          <div className="ml-2 px-2 py-0.5 text-xs bg-purple-100 text-purple-800 rounded-full flex items-center">
-                            <Users className="h-2.5 w-2.5 mr-1" />
-                            {childInfo.children.find(c => c.id === item.childId)?.name || 'Child'}
-                          </div>
+                        {/* Show child pills if associated with specific children */}
+                        {childInfo?.children && (
+                          <>
+                            {item.childIds && item.childIds.length > 0 ? (
+                              <div className="ml-2 flex flex-wrap gap-1">
+                                {item.childIds.map(childId => {
+                                  const child = childInfo.children.find(c => c.id === childId);
+                                  const childName = child?.name || `Child ${childInfo.children.findIndex(c => c.id === childId) + 1}`;
+                                  return (
+                                    <span key={childId} className="px-2 py-0.5 text-xs bg-purple-100 text-purple-800 rounded-full flex items-center">
+                                      <Users className="h-2.5 w-2.5 mr-1" />
+                                      {childName}
+                                    </span>
+                                  );
+                                })}
+                              </div>
+                            ) : item.childId ? (
+                              <div className="ml-2 px-2 py-0.5 text-xs bg-purple-100 text-purple-800 rounded-full flex items-center">
+                                <Users className="h-2.5 w-2.5 mr-1" />
+                                {childInfo.children.find(c => c.id === item.childId)?.name || 'Child'}
+                              </div>
+                            ) : null}
+                          </>
                         )}
                       </div>
                     </div>
