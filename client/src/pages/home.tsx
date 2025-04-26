@@ -363,16 +363,7 @@ export default function Home() {
       // Clear any single report when we have a multi-child report
       setReport(null);
       
-      // Save individual reports to history
-      for (const childId in newMultiChildReport.childReports) {
-        const childReport = newMultiChildReport.childReports[childId];
-        // Only save non-empty reports to history
-        if (childReport && childReport.macronutrients && childReport.macronutrients.length > 0) {
-          await saveReportToHistory(childReport);
-        }
-      }
-      
-      // Update the report history state
+      // Update the report history state with the new consolidated report
       const updatedHistory = await getReportHistory();
       setReportHistory(updatedHistory);
       

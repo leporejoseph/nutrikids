@@ -127,7 +127,10 @@ export const reportHistoryItemSchema = z.object({
   reportDate: z.string(), // YYYY-MM-DD format
   analysisDate: z.number(),
   nutritionScore: z.number(),
-  report: nutritionReportSchema,
+  // Can store either a single report or multiple child reports
+  report: nutritionReportSchema.optional(),
+  childReports: z.record(z.string(), nutritionReportSchema).optional(),
+  isMultiChild: z.boolean().default(false),
   user_id: z.string().optional(), // Added for Supabase integration
 });
 

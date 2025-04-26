@@ -201,24 +201,53 @@ export function getReportHistory(): ReportHistoryItem[] {
   }
 }
 
-export function saveReportToHistory(report: NutritionReport): void {
+export function saveReportToHistory(report: NutritionReport | MultiChildReport): void {
   try {
     const history = getReportHistory();
+    const currentDate = new Date().toISOString().split('T')[0];
     
-    // Create a history item from the report
-    const historyItem: ReportHistoryItem = {
-      id: report.id || crypto.randomUUID(),
-      reportDate: report.reportDate || new Date().toISOString().split('T')[0],
-      analysisDate: report.analysisDate || Date.now(),
-      nutritionScore: report.nutritionScore,
-      report: report
-    };
+    // Check if this is a MultiChildReport
+    const isMultiChild = 'childReports' in report;
+    let historyItem: ReportHistoryItem;
     
-    // Check if this report already exists in history (by ID)
-    const existingIndex = history.findIndex(item => item.id === historyItem.id);
+    if (isMultiChild) {
+      // It's a MultiChildReport - create a consolidated history item
+      const multiReport = report as MultiChildReport;
+      
+      // Calculate average nutrition score across all children
+      const childReports = Object.values(multiReport.childReports);
+      const avgScore = childReports.length > 0
+        ? Math.round(childReports.reduce((sum, r) => sum + (r.nutritionScore || 0), 0) / childReports.length)
+        : 0;
+      
+      historyItem = {
+        id: multiReport.id || crypto.randomUUID(),
+        reportDate: multiReport.reportDate || currentDate,
+        analysisDate: multiReport.analysisDate || Date.now(),
+        nutritionScore: avgScore,
+        childReports: multiReport.childReports,
+        isMultiChild: true
+      };
+    } else {
+      // It's a single child report
+      const singleReport = report as NutritionReport;
+      historyItem = {
+        id: singleReport.id || crypto.randomUUID(),
+        reportDate: singleReport.reportDate || currentDate,
+        analysisDate: singleReport.analysisDate || Date.now(),
+        nutritionScore: singleReport.nutritionScore,
+        report: singleReport,
+        isMultiChild: false
+      };
+    }
+    
+    // Check if a report for this date already exists
+    const existingIndex = history.findIndex(item => 
+      item.reportDate === historyItem.reportDate && item.isMultiChild === historyItem.isMultiChild
+    );
     
     if (existingIndex >= 0) {
-      // Update existing report
+      // Update existing report for this date
       history[existingIndex] = historyItem;
     } else {
       // Add new report to history
@@ -352,10 +381,8 @@ export function saveMultiChildReport(report: MultiChildReport): void {
     // Save the multi-child report
     localStorage.setItem(STORAGE_KEYS.MULTI_CHILD_REPORT, JSON.stringify(report));
     
-    // Also save individual reports to history
-    Object.entries(report.childReports).forEach(([childId, childReport]) => {
-      saveReportToHistory(childReport);
-    });
+    // Save the consolidated family report to history
+    saveReportToHistory(report);
   } catch (error) {
     console.error("Error saving multi-child report to localStorage:", error);
   }
