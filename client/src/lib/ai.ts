@@ -59,7 +59,14 @@ export async function generateNutritionReport({
             parts: [{
               text: prompt
             }]
-          }]
+          }],
+          generationConfig: {
+            temperature: 0.2,
+            topK: 40,
+            topP: 0.95,
+            maxOutputTokens: 8192,
+            responseFormat: { type: "JSON" }  // Request JSON specifically
+          }
         })
       });
       
@@ -100,10 +107,19 @@ export async function generateNutritionReport({
         // First, try to clean up the response if it contains markdown code blocks
         let jsonText = textResponse;
         
-        // Remove any markdown code block markers (```json and ```)
-        if (jsonText.includes('```')) {
-          jsonText = jsonText.replace(/```json\n?/g, '').replace(/```\n?/g, '');
+        // Extract JSON content from any markdown code blocks
+        const jsonRegex = /```(?:json)?\s*([\s\S]*?)```/;
+        const match = jsonText.match(jsonRegex);
+        
+        if (match && match[1]) {
+          // If we found JSON in code blocks, use that content
+          jsonText = match[1].trim();
+        } else {
+          // Otherwise, try to clean up the text by removing markdown markers
+          jsonText = jsonText.replace(/```json\s*/g, '').replace(/```\s*/g, '');
         }
+        
+        console.log("Cleaned JSON text:", jsonText.substring(0, 100) + "...");
         
         // Attempt to parse the cleaned JSON
         const parsedReport = JSON.parse(jsonText);
@@ -113,7 +129,7 @@ export async function generateNutritionReport({
         console.log("Raw response:", textResponse);
         
         // Since this is a detailed error, provide more helpful guidance
-        const errorMsg = "There was a problem processing the AI response. Please try again or try using a different model.";
+        const errorMsg = "There was a problem with the AI response format. Please try again or try a different model.";
         throw new Error(errorMsg);
       }
     } catch (apiError: any) {
@@ -278,7 +294,8 @@ ANALYSIS INSTRUCTIONS:
 6. Provide specific improvement recommendations.
 7. Suggest 4-5 specific foods that would complement the current intake to improve nutritional balance.
 
-Format your response as a JSON object with the following structure and nothing else:
+IMPORTANT: Format your response as a valid JSON object using the schema below. Do not include any explanations, markdown formatting, or text outside the JSON object. The response must be directly parseable as JSON:
+
 {
   "calories": number,
   "caloriesTarget": number,
