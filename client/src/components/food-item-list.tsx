@@ -166,8 +166,9 @@ export default function FoodItemList({ items, onDelete, onUpdate }: FoodItemList
               <div className="flex justify-end mt-2">
                 <button 
                   onClick={() => handleSave(item.id)}
-                  className="save-btn p-2 px-4 bg-success text-white rounded-md flex items-center"
+                  className="save-btn p-2 px-4 bg-green-600 hover:bg-green-700 text-white rounded-md flex items-center"
                   aria-label="Save changes"
+                  type="button"
                 >
                   <Check className="h-4 w-4 mr-2" /> Save
                 </button>

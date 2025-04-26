@@ -5,15 +5,17 @@ import Header from "@/components/header";
 import FoodEntryForm from "@/components/food-entry-form";
 import SupplementEntryForm from "@/components/supplement-entry-form";
 import FoodItemList from "@/components/food-item-list";
+import FoodPlanManager from "@/components/food-plan-manager";
 import DateSelector from "@/components/date-selector";
 import NutritionReportView from "@/components/report/report-view";
 import { APP_IMAGES } from "@/lib/constants";
 import { getFoodItems, saveFoodItems, getAppSettings, getChildInfo, saveNutritionReport, getNutritionReport } from "@/lib/localStorage";
 import { Button } from "@/components/ui/button";
-import { ChartPie, Apple, Pill } from "lucide-react";
+import { ChartPie, Apple, Pill, BookmarkPlus } from "lucide-react";
 import { generateNutritionReport } from "@/lib/ai";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 export default function Home() {
   const [foodItems, setFoodItems] = useState<FoodItem[]>([]);
@@ -79,6 +81,26 @@ export default function Home() {
     const updatedItems = foodItems.filter((item) => item.id !== id);
     setFoodItems(updatedItems);
     saveFoodItems(updatedItems);
+  };
+  
+  const handleLoadFoodPlan = (items: FoodItem[]) => {
+    // Filter items to only include those for the selected date
+    const itemsForSelectedDate = items.map(item => ({
+      ...item,
+      id: crypto.randomUUID(), // Generate new IDs to avoid conflicts
+      date: selectedDate, // Set to the currently selected date
+      createdAt: Date.now(), // Update the creation timestamp
+    }));
+    
+    // Add the items to the current food items
+    const updatedItems = [...foodItems, ...itemsForSelectedDate];
+    setFoodItems(updatedItems);
+    saveFoodItems(updatedItems);
+    
+    toast({
+      title: "Food plan loaded",
+      description: `${itemsForSelectedDate.length} items have been added to your current date.`,
+    });
   };
 
   const handleGenerateReport = async () => {
@@ -222,6 +244,25 @@ export default function Home() {
               </div>
             )}
 
+            {/* Food Plans Manager */}
+            <div className="mt-6 mb-6">
+              <Collapsible className="border border-gray-200 rounded-lg overflow-hidden">
+                <CollapsibleTrigger className="w-full bg-blue-50 hover:bg-blue-100 p-3 flex items-center justify-between">
+                  <div className="flex items-center">
+                    <BookmarkPlus className="h-5 w-5 text-blue-500 mr-2" />
+                    <span className="font-medium text-blue-700">Food Plans</span>
+                  </div>
+                  <span className="text-blue-500 text-xs">Save and load meal plans</span>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="p-4 bg-white">
+                  <FoodPlanManager 
+                    currentItems={[...filteredFoodItems, ...filteredSupplements]} 
+                    onLoadPlan={handleLoadFoodPlan} 
+                  />
+                </CollapsibleContent>
+              </Collapsible>
+            </div>
+            
             {/* Images for visual appeal */}
             <div className="mt-8 grid grid-cols-3 gap-2">
               <img src={APP_IMAGES.fruits} alt="Healthy fruits" className="w-full h-24 object-cover rounded-lg shadow-sm" />
