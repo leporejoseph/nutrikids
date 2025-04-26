@@ -1,4 +1,4 @@
-import { FoodItem, ChildInfo, AppSettings, NutritionReport } from "@shared/schema";
+import { FoodItem, ChildInfo, AppSettings, NutritionReport, FoodPlan } from "@shared/schema";
 import { DEFAULT_APP_SETTINGS, DEFAULT_CHILD_INFO, STORAGE_KEYS } from "./constants";
 
 // Simple encryption function for API keys
