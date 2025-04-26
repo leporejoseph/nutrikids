@@ -32,6 +32,19 @@ export const MEAL_TYPES = [
   { value: "beverage", label: "Beverage" },
 ];
 
+// Drink Units
+export const DRINK_UNITS = [
+  { value: "ml", label: "milliliter(s)" },
+  { value: "oz", label: "ounce(s)" },
+  { value: "cup", label: "cup(s)" },
+  { value: "bottle", label: "bottle(s)" },
+  { value: "can", label: "can(s)" },
+  { value: "glass", label: "glass(es)" },
+  { value: "serving", label: "serving(s)" },
+  { value: "tbsp", label: "tablespoon(s)" },
+  { value: "tsp", label: "teaspoon(s)" },
+];
+
 // Supplement Units
 export const SUPPLEMENT_UNITS = [
   { value: "pill", label: "pill(s)" },

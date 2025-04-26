@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FoodItem } from "@shared/schema";
-import { FOOD_UNITS, MEAL_TYPES } from "@/lib/constants";
+import { FOOD_UNITS, DRINK_UNITS, SUPPLEMENT_UNITS, MEAL_TYPES } from "@/lib/constants";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -8,7 +8,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Apple, Coffee, Pill } from "lucide-react";
 
 const foodEntrySchema = z.object({
   name: z.string().min(1, "Food name is required"),
@@ -25,26 +25,40 @@ interface FoodEntryFormProps {
 }
 
 export default function FoodEntryForm({ onAddFood, selectedDate }: FoodEntryFormProps) {
+  const [entryType, setEntryType] = useState<"food" | "drink" | "supplement">("food");
+  
   const form = useForm<FoodEntryFormValues>({
     resolver: zodResolver(foodEntrySchema),
     defaultValues: {
       name: "",
       quantity: 1,
-      unit: "piece",
+      unit: entryType === "food" ? "piece" : entryType === "drink" ? "ml" : "pill",
       mealType: "breakfast",
     },
   });
 
+  // Update form when entry type changes
+  useEffect(() => {
+    // Get appropriate default unit for the selected type
+    const defaultUnit = 
+      entryType === "food" ? "piece" : 
+      entryType === "drink" ? "ml" : 
+      "pill";
+    
+    form.setValue("unit", defaultUnit);
+  }, [entryType, form]);
+
   const onSubmit = (values: FoodEntryFormValues) => {
     const currentDate = selectedDate || new Date().toISOString().split('T')[0];
     
-    // Create a food item with the current date
+    // Create a food item with the current date and selected type
     const newFood = {
       id: crypto.randomUUID(),
       name: values.name,
       quantity: values.quantity,
       unit: values.unit,
       mealType: values.mealType,
+      type: entryType, // Add the selected type
       createdAt: Date.now(),
       date: currentDate,
     } as FoodItem;
@@ -53,13 +67,85 @@ export default function FoodEntryForm({ onAddFood, selectedDate }: FoodEntryForm
     form.reset({
       name: "",
       quantity: 1,
-      unit: "piece",
+      unit: entryType === "food" ? "piece" : entryType === "drink" ? "ml" : "pill",
       mealType: form.getValues().mealType,
     });
   };
 
+  // Get the proper label and placeholder based on entry type
+  const getItemTypeLabel = () => {
+    switch (entryType) {
+      case "food": return "Food Item";
+      case "drink": return "Drink Item";
+      case "supplement": return "Supplement";
+      default: return "Item";
+    }
+  };
+
+  const getItemPlaceholder = () => {
+    switch (entryType) {
+      case "food": return "e.g., Apple, Chicken nuggets, etc.";
+      case "drink": return "e.g., Water, Orange juice, Milk, etc.";
+      case "supplement": return "e.g., Vitamin D, Iron supplement, etc.";
+      default: return "Enter item name";
+    }
+  };
+
+  // Get the appropriate units based on entry type
+  const getUnitsForType = () => {
+    switch (entryType) {
+      case "food": return FOOD_UNITS;
+      case "drink": return DRINK_UNITS;
+      case "supplement": return [...SUPPLEMENT_UNITS];
+      default: return FOOD_UNITS;
+    }
+  };
+
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+      {/* Entry Type Selection */}
+      <div className="mb-4">
+        <div className="font-medium block mb-2">Entry Type</div>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            className={`flex-1 py-2 px-3 rounded-md flex items-center justify-center gap-2 transition-colors ${
+              entryType === "food" 
+                ? "bg-green-100 border border-green-300 text-green-700" 
+                : "bg-gray-50 border border-gray-200 text-gray-700 hover:bg-gray-100"
+            }`}
+            onClick={() => setEntryType("food")}
+          >
+            <Apple className="h-4 w-4" />
+            <span>Food</span>
+          </button>
+          <button
+            type="button"
+            className={`flex-1 py-2 px-3 rounded-md flex items-center justify-center gap-2 transition-colors ${
+              entryType === "drink" 
+                ? "bg-purple-100 border border-purple-300 text-purple-700" 
+                : "bg-gray-50 border border-gray-200 text-gray-700 hover:bg-gray-100"
+            }`}
+            onClick={() => setEntryType("drink")}
+          >
+            <Coffee className="h-4 w-4" />
+            <span>Drink</span>
+          </button>
+          <button
+            type="button"
+            className={`flex-1 py-2 px-3 rounded-md flex items-center justify-center gap-2 transition-colors ${
+              entryType === "supplement" 
+                ? "bg-blue-100 border border-blue-300 text-blue-700" 
+                : "bg-gray-50 border border-gray-200 text-gray-700 hover:bg-gray-100"
+            }`}
+            onClick={() => setEntryType("supplement")}
+          >
+            <Pill className="h-4 w-4" />
+            <span>Supplement</span>
+          </button>
+        </div>
+      </div>
+
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <FormField
@@ -67,10 +153,10 @@ export default function FoodEntryForm({ onAddFood, selectedDate }: FoodEntryForm
             name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="font-medium">Food Item</FormLabel>
+                <FormLabel className="font-medium">{getItemTypeLabel()}</FormLabel>
                 <FormControl>
                   <Input 
-                    placeholder="e.g., Apple, Chicken nuggets, etc." 
+                    placeholder={getItemPlaceholder()}
                     className="p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-accent focus:border-accent"
                     {...field} 
                   />
@@ -112,7 +198,7 @@ export default function FoodEntryForm({ onAddFood, selectedDate }: FoodEntryForm
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {FOOD_UNITS.map((unit) => (
+                        {getUnitsForType().map((unit) => (
                           <SelectItem key={unit.value} value={unit.value}>
                             {unit.label}
                           </SelectItem>
