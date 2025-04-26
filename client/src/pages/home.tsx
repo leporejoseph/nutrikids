@@ -393,27 +393,34 @@ export default function Home() {
               />
             </div>
 
-            {/* Add the FoodPlanManager component */}
-            <div className="mt-4 mb-6 border rounded-md p-4 bg-blue-50 border-blue-100">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-inter font-semibold text-lg flex items-center">
-                  <Bookmark className="mr-2 h-5 w-5 text-blue-600" /> Food Plans
-                </h3>
-                {childInfo?.selectedChildId && (
-                  <div className="text-sm text-blue-700 bg-blue-100 px-2 py-1 rounded-full flex items-center">
-                    <Users className="h-3 w-3 mr-1" />
-                    {childInfo.children?.find(c => c.id === childInfo.selectedChildId)?.name || 'Selected Child'}
+            {/* Food Plans Collapsible Component */}
+            <Collapsible className="mt-4 mb-6 border rounded-md bg-blue-50 border-blue-100 overflow-hidden">
+              <CollapsibleTrigger asChild>
+                <div className="p-4 cursor-pointer hover:bg-blue-100 transition-colors">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-inter font-semibold text-lg flex items-center">
+                      <Bookmark className="mr-2 h-5 w-5 text-blue-600" /> Food Plans
+                    </h3>
+                    {childInfo?.selectedChildId && (
+                      <div className="text-sm text-blue-700 bg-blue-100 px-2 py-1 rounded-full flex items-center">
+                        <Users className="h-3 w-3 mr-1" />
+                        {childInfo.children?.find(c => c.id === childInfo.selectedChildId)?.name || 'Selected Child'}
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-              
-              {/* FoodPlanManager component */}
-              <FoodPlanManager 
-                currentItems={filteredItems} 
-                onLoadPlan={handleLoadFoodPlan}
-                selectedChildId={selectedChildId}
-              />
-            </div>
+                </div>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <div className="p-4 pt-0 border-t border-blue-100">
+                  {/* FoodPlanManager component */}
+                  <FoodPlanManager 
+                    currentItems={filteredItems} 
+                    onLoadPlan={handleLoadFoodPlan}
+                    selectedChildId={selectedChildId}
+                  />
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
 
             {filteredItems.length > 0 && (
               <div id="generateReportBtnContainer" className="mt-6 space-y-2">

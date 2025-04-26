@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
-import { Star, StarOff, Plus, Trash2, Save, Bookmark, BookmarkCheck } from "lucide-react";
+import { Star, StarOff, Plus, Trash2, Save, Bookmark, BookmarkCheck, Search, Calendar, AlignLeft, Apple, Coffee, Pill } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 
 const foodPlanFormSchema = z.object({
@@ -30,6 +30,8 @@ interface FoodPlanManagerProps {
 
 export default function FoodPlanManager({ currentItems, onLoadPlan, selectedChildId }: FoodPlanManagerProps) {
   const [plans, setPlans] = useState<FoodPlan[]>([]);
+  const [filteredPlans, setFilteredPlans] = useState<FoodPlan[]>([]);
+  const [searchQuery, setSearchQuery] = useState<string>("");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [childInfo, setChildInfo] = useState<ChildInfo | null>(null);
   
@@ -45,11 +47,43 @@ export default function FoodPlanManager({ currentItems, onLoadPlan, selectedChil
       );
       
       setPlans(filteredPlans);
+      setFilteredPlans(filteredPlans);
       setChildInfo(loadedChildInfo);
     };
     
     loadData();
   }, [selectedChildId]);
+  
+  // Filter plans based on search query
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setFilteredPlans(plans);
+      return;
+    }
+    
+    const query = searchQuery.toLowerCase().trim();
+    const results = plans.filter(plan => {
+      // Match in plan name
+      if (plan.name.toLowerCase().includes(query)) return true;
+      
+      // Match in plan description
+      if (plan.description && plan.description.toLowerCase().includes(query)) return true;
+      
+      // Match in food item names
+      const hasMatchingItem = plan.items.some(item => 
+        item.name.toLowerCase().includes(query)
+      );
+      if (hasMatchingItem) return true;
+      
+      // Match date (formatted as string)
+      const dateStr = new Date(plan.createdAt).toLocaleDateString();
+      if (dateStr.includes(query)) return true;
+      
+      return false;
+    });
+    
+    setFilteredPlans(results);
+  }, [searchQuery, plans]);
   
   const form = useForm<FoodPlanFormValues>({
     resolver: zodResolver(foodPlanFormSchema),
@@ -297,11 +331,46 @@ export default function FoodPlanManager({ currentItems, onLoadPlan, selectedChil
       {/* Saved Plans List */}
       {plans.length > 0 ? (
         <div className="space-y-2">
-          <h3 className="font-semibold text-sm text-gray-500 uppercase tracking-wider mb-2">
-            Saved Plans
-          </h3>
+          <div className="flex justify-between items-center mb-3">
+            <h3 className="font-semibold text-sm text-gray-500 uppercase tracking-wider">
+              Saved Plans
+            </h3>
+            <div className="text-xs text-gray-500">
+              {filteredPlans.length} of {plans.length} plans
+            </div>
+          </div>
           
-          {plans.map((plan) => (
+          {/* Search input */}
+          <div className="relative mb-3">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Search className="h-4 w-4 text-gray-400" />
+            </div>
+            <input
+              type="text"
+              placeholder="Search plans by name, description, items, or date..."
+              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
+          </div>
+          
+          {filteredPlans.length === 0 && searchQuery ? (
+            <div className="text-center py-8 bg-gray-50 rounded-md">
+              <p className="text-gray-500">No plans match your search</p>
+              <p className="text-sm text-gray-400">Try a different search term</p>
+            </div>
+          ) : (
+            filteredPlans.map((plan) => (
             <div 
               key={plan.id} 
               className="bg-white rounded-lg border border-gray-200 p-3 transition hover:shadow-md"
@@ -366,7 +435,8 @@ export default function FoodPlanManager({ currentItems, onLoadPlan, selectedChil
                 </div>
               </div>
             </div>
-          ))}
+          ))
+          )}
         </div>
       ) : (
         <div className="text-center p-4 border border-dashed border-gray-300 rounded-lg bg-gray-50">
