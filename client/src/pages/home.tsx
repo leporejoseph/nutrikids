@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { format } from "date-fns";
-import { FoodItem, NutritionReport } from "@shared/schema";
+import { FoodItem, NutritionReport, FoodPlan } from "@shared/schema";
 import Header from "@/components/header";
 import FoodEntryForm from "@/components/food-entry-form";
 import SupplementEntryForm from "@/components/supplement-entry-form";
@@ -9,13 +9,14 @@ import FoodPlanManager from "@/components/food-plan-manager";
 import DateSelector from "@/components/date-selector";
 import NutritionReportView from "@/components/report/report-view";
 import { APP_IMAGES } from "@/lib/constants";
-import { getFoodItems, saveFoodItems, getAppSettings, getChildInfo, saveNutritionReport, getNutritionReport } from "@/lib/localStorage";
+import { getFoodItems, saveFoodItems, getAppSettings, getChildInfo, saveNutritionReport, getNutritionReport, getFoodPlans, saveFoodPlan } from "@/lib/localStorage";
 import { Button } from "@/components/ui/button";
-import { ChartPie, Apple, Pill, BookmarkPlus } from "lucide-react";
+import { ChartPie, Apple, Pill, BookmarkPlus, Save, BookmarkCheck, Star } from "lucide-react";
 import { generateNutritionReport } from "@/lib/ai";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 
 export default function Home() {
   const [foodItems, setFoodItems] = useState<FoodItem[]>([]);
@@ -25,7 +26,15 @@ export default function Home() {
   const [report, setReport] = useState<NutritionReport | null>(null);
   const [reportError, setReportError] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<string>(format(new Date(), 'yyyy-MM-dd'));
+  const [plans, setPlans] = useState<FoodPlan[]>([]);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isLoadDialogOpen, setIsLoadDialogOpen] = useState(false);
   const { toast } = useToast();
+
+  useEffect(() => {
+    // Load saved food plans
+    setPlans(getFoodPlans());
+  }, []);
 
   useEffect(() => {
     // Load saved food items
@@ -101,6 +110,40 @@ export default function Home() {
       title: "Food plan loaded",
       description: `${itemsForSelectedDate.length} items have been added to your current date.`,
     });
+  };
+  
+  const handleSaveFoodPlan = (name: string, description: string, isDefault: boolean) => {
+    const currentItems = [...filteredFoodItems, ...filteredSupplements];
+    
+    if (currentItems.length === 0) {
+      toast({
+        title: "No items to save",
+        description: "Add at least one food or supplement item before saving a plan.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    const newPlan: FoodPlan = {
+      id: crypto.randomUUID(),
+      name,
+      description,
+      items: currentItems,
+      createdAt: Date.now(),
+      isDefault
+    };
+    
+    saveFoodPlan(newPlan);
+    
+    // Refresh plans list
+    setPlans(getFoodPlans());
+    
+    toast({
+      title: "Plan saved",
+      description: `${newPlan.name} has been saved with ${currentItems.length} items.`,
+    });
+    
+    setIsCreateDialogOpen(false);
   };
 
   const handleGenerateReport = async () => {
@@ -202,7 +245,28 @@ export default function Home() {
                 <FoodEntryForm onAddFood={handleAddFood} selectedDate={selectedDate} />
 
                 <div id="foodListContainer" className="mb-6">
-                  <h3 className="font-inter font-semibold text-lg mb-2">Food Items</h3>
+                  <div className="flex justify-between items-center mb-2">
+                    <h3 className="font-inter font-semibold text-lg">Food & Drinks</h3>
+                    <div className="flex space-x-2">
+                      <button 
+                        onClick={() => setIsCreateDialogOpen(true)}
+                        className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
+                        title="Save current items as a plan"
+                      >
+                        <BookmarkPlus className="h-4 w-4" />
+                      </button>
+                      {plans.length > 0 && (
+                        <button 
+                          onClick={() => setIsLoadDialogOpen(true)}
+                          className="p-1.5 text-green-600 hover:bg-green-50 rounded-full transition-colors"
+                          title="Load saved meal plan"
+                        >
+                          <Save className="h-4 w-4" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  
                   {filteredFoodItems.length > 0 ? (
                     <FoodItemList 
                       items={filteredFoodItems} 
@@ -219,7 +283,28 @@ export default function Home() {
                 <SupplementEntryForm onAddSupplement={handleAddFood} selectedDate={selectedDate} />
 
                 <div id="supplementListContainer" className="mb-6">
-                  <h3 className="font-inter font-semibold text-lg mb-2">Supplements</h3>
+                  <div className="flex justify-between items-center mb-2">
+                    <h3 className="font-inter font-semibold text-lg">Supplements</h3>
+                    <div className="flex space-x-2">
+                      <button 
+                        onClick={() => setIsCreateDialogOpen(true)}
+                        className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
+                        title="Save current items as a plan"
+                      >
+                        <BookmarkPlus className="h-4 w-4" />
+                      </button>
+                      {plans.length > 0 && (
+                        <button 
+                          onClick={() => setIsLoadDialogOpen(true)}
+                          className="p-1.5 text-green-600 hover:bg-green-50 rounded-full transition-colors"
+                          title="Load saved meal plan"
+                        >
+                          <Save className="h-4 w-4" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  
                   {filteredSupplements.length > 0 ? (
                     <FoodItemList 
                       items={filteredSupplements} 
@@ -244,24 +329,152 @@ export default function Home() {
               </div>
             )}
 
-            {/* Food Plans Manager */}
-            <div className="mt-6 mb-6">
-              <Collapsible className="border border-gray-200 rounded-lg overflow-hidden">
-                <CollapsibleTrigger className="w-full bg-blue-50 hover:bg-blue-100 p-3 flex items-center justify-between">
-                  <div className="flex items-center">
-                    <BookmarkPlus className="h-5 w-5 text-blue-500 mr-2" />
-                    <span className="font-medium text-blue-700">Food Plans</span>
+            {/* Save Plan Dialog */}
+            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Save Current Items as Plan</DialogTitle>
+                </DialogHeader>
+                <div className="py-4">
+                  <form 
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      const form = e.target as HTMLFormElement;
+                      const name = (form.elements.namedItem('planName') as HTMLInputElement).value;
+                      const description = (form.elements.namedItem('planDescription') as HTMLTextAreaElement).value;
+                      const isDefault = (form.elements.namedItem('isDefault') as HTMLInputElement).checked;
+                      
+                      handleSaveFoodPlan(name, description, isDefault);
+                    }}
+                    className="space-y-4"
+                  >
+                    <div className="space-y-2">
+                      <label htmlFor="planName" className="text-sm font-medium">
+                        Plan Name
+                      </label>
+                      <input
+                        id="planName"
+                        name="planName"
+                        className="w-full border border-gray-300 rounded-md p-2 text-sm"
+                        required
+                        placeholder="e.g., Weekday Breakfast"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <label htmlFor="planDescription" className="text-sm font-medium">
+                        Description (optional)
+                      </label>
+                      <textarea
+                        id="planDescription"
+                        name="planDescription"
+                        className="w-full border border-gray-300 rounded-md p-2 text-sm"
+                        rows={3}
+                        placeholder="Add any notes about this meal plan"
+                      />
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id="isDefault"
+                        name="isDefault"
+                        className="rounded border-gray-300"
+                      />
+                      <label htmlFor="isDefault" className="text-sm">
+                        Set as default plan
+                      </label>
+                    </div>
+                    
+                    <div className="pt-2">
+                      <h3 className="font-medium text-md mb-2">Items in this plan ({filteredFoodItems.length + filteredSupplements.length})</h3>
+                      <div className="max-h-[200px] overflow-y-auto space-y-2 text-sm border border-gray-100 rounded-md p-2 bg-gray-50">
+                        {filteredFoodItems.map(item => (
+                          <div key={item.id} className="flex items-center gap-2">
+                            <Apple className="h-3 w-3 text-green-500" />
+                            <span>{item.name} ({item.quantity} {item.unit})</span>
+                          </div>
+                        ))}
+                        {filteredSupplements.map(item => (
+                          <div key={item.id} className="flex items-center gap-2">
+                            <Pill className="h-3 w-3 text-blue-500" />
+                            <span>{item.name} ({item.quantity} {item.unit})</span>
+                          </div>
+                        ))}
+                        {filteredFoodItems.length + filteredSupplements.length === 0 && (
+                          <p className="text-gray-500 italic">No items to save</p>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div className="flex justify-end pt-2">
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        className="mr-2"
+                        onClick={() => setIsCreateDialogOpen(false)}
+                      >
+                        Cancel
+                      </Button>
+                      <Button 
+                        type="submit" 
+                        className="bg-blue-600 text-white"
+                        disabled={filteredFoodItems.length + filteredSupplements.length === 0}
+                      >
+                        <BookmarkPlus className="mr-2 h-4 w-4" />
+                        Save Plan
+                      </Button>
+                    </div>
+                  </form>
+                </div>
+              </DialogContent>
+            </Dialog>
+            
+            {/* Load Plan Dialog */}
+            <Dialog open={isLoadDialogOpen} onOpenChange={setIsLoadDialogOpen}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Load Food Plan</DialogTitle>
+                </DialogHeader>
+                <div className="py-4">
+                  <h3 className="font-semibold text-sm text-gray-500 uppercase tracking-wider mb-4">
+                    Select a plan to load
+                  </h3>
+                  <div className="space-y-3 max-h-[400px] overflow-y-auto">
+                    {plans.map((plan) => (
+                      <div 
+                        key={plan.id} 
+                        className="bg-white rounded-lg border border-gray-200 p-4 hover:border-blue-300 hover:bg-blue-50 cursor-pointer transition"
+                        onClick={() => {
+                          handleLoadFoodPlan(plan.items);
+                          setIsLoadDialogOpen(false);
+                        }}
+                      >
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <div className="font-medium flex items-center">
+                              {plan.name}
+                              {plan.isDefault && (
+                                <span className="ml-2 text-amber-500">
+                                  <Star className="h-4 w-4" />
+                                </span>
+                              )}
+                            </div>
+                            {plan.description && (
+                              <p className="text-sm text-gray-500">{plan.description}</p>
+                            )}
+                            <div className="text-xs text-gray-400 mt-1">
+                              {plan.items.length} items • {new Date(plan.createdAt).toLocaleDateString()}
+                            </div>
+                          </div>
+                          <BookmarkCheck className="h-5 w-5 text-green-500" />
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                  <span className="text-blue-500 text-xs">Save and load meal plans</span>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="p-4 bg-white">
-                  <FoodPlanManager 
-                    currentItems={[...filteredFoodItems, ...filteredSupplements]} 
-                    onLoadPlan={handleLoadFoodPlan} 
-                  />
-                </CollapsibleContent>
-              </Collapsible>
-            </div>
+                </div>
+              </DialogContent>
+            </Dialog>
             
             {/* Images for visual appeal */}
             <div className="mt-8 grid grid-cols-3 gap-2">
