@@ -139,9 +139,18 @@ export default function FoodItemList({ items, onDelete, onUpdate, onAddFood, sel
 
   const handleSave = (id: string) => {
     const values = form.getValues();
+    // Find the existing item to merge with updates
+    const existingItem = items.find(item => item.id === id);
+    if (!existingItem) return;
+
     // Include the childIds in the update
     onUpdate(id, {
       ...values,
+      // Preserve existing item properties and add updated ones
+      type: existingItem.type,
+      createdAt: existingItem.createdAt,
+      date: existingItem.date,
+      // Update childIds - important to always set both childIds and childId
       childIds: selectedChildIds.length > 0 ? selectedChildIds : undefined,
       // For backward compatibility
       childId: selectedChildIds.length === 1 ? selectedChildIds[0] : undefined
