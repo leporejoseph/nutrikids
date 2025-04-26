@@ -7,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { FOOD_UNITS, MEAL_TYPES, APP_IMAGES } from "@/lib/constants";
-import { Edit, MinusCircle, Check } from "lucide-react";
+import { Edit, MinusCircle, Check, Apple, Coffee, Pill } from "lucide-react";
 
 interface FoodItemListProps {
   items: FoodItem[];
@@ -63,8 +63,8 @@ export default function FoodItemList({ items, onDelete, onUpdate }: FoodItemList
     return (
       <div id="emptyFoodListMessage" className="text-center py-8 bg-gray-50 rounded-lg border border-gray-200">
         <img src={APP_IMAGES.fruits} alt="Empty food list" className="w-16 h-16 mx-auto mb-2 opacity-50 rounded-full" />
-        <p className="text-gray-500">No food items added yet</p>
-        <p className="text-sm text-gray-400">Add some foods to track nutrition</p>
+        <p className="text-gray-500">No items added yet</p>
+        <p className="text-sm text-gray-400">Add food, drinks, or supplements to track nutrition</p>
       </div>
     );
   }
@@ -176,10 +176,21 @@ export default function FoodItemList({ items, onDelete, onUpdate }: FoodItemList
             </div>
           ) : (
             <>
-              <div>
-                <div className="font-medium">{item.name}</div>
-                <div className="text-sm text-gray-500">
-                  {item.quantity} {item.unit} - {formatMealType(item.mealType)}
+              <div className="flex items-center">
+                <div className="mr-2">
+                  {item.type === "supplement" ? (
+                    <Pill className="h-4 w-4 text-blue-500" />
+                  ) : item.type === "drink" ? (
+                    <Coffee className="h-4 w-4 text-purple-500" />
+                  ) : (
+                    <Apple className="h-4 w-4 text-green-500" />
+                  )}
+                </div>
+                <div>
+                  <div className="font-medium">{item.name}</div>
+                  <div className="text-sm text-gray-500">
+                    {item.quantity} {item.unit} - {formatMealType(item.mealType)}
+                  </div>
                 </div>
               </div>
               <div className="flex space-x-2">

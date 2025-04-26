@@ -24,7 +24,7 @@ export const foodItemSchema = z.object({
   quantity: z.number(),
   unit: z.string(),
   mealType: z.string(),
-  type: z.enum(["food", "supplement"]).default("food"),
+  type: z.enum(["food", "drink", "supplement"]).default("food"),
   supplementInfo: z.object({
     dosage: z.string().optional(),
     frequency: z.string().optional(),
