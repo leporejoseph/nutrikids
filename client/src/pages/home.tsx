@@ -22,6 +22,7 @@ import {
   saveFoodPlan, 
   deleteFoodPlan, 
   getReportHistory,
+  saveReportToHistory,
   getMultiChildReport,
   saveMultiChildReport,
   clearMultiChildReport
