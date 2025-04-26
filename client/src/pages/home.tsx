@@ -27,7 +27,7 @@ import {
   clearMultiChildReport
 } from "@/lib/storage";
 import { Button } from "@/components/ui/button";
-import { ChartPie, Apple, Pill, BookmarkPlus, Save, BookmarkCheck, Star, Coffee, Upload, Trash2, MinusCircle, History, FileText, Users, Bookmark, Search } from "lucide-react";
+import { ChartPie, Apple, Pill, BookmarkPlus, Save, BookmarkCheck, Star, Coffee, Upload, Trash2, MinusCircle, History, FileText, Users, Bookmark, Search, ArrowLeft } from "lucide-react";
 import { generateNutritionReport, generateMultiChildReport } from "@/lib/ai";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -496,12 +496,24 @@ export default function Home() {
               <div id="generateReportBtnContainer" className="mt-6 space-y-2">
                 {/* Only show the Generate Report button for today's date */}
                 {isToday ? (
-                  <Button 
-                    onClick={handleGenerateReport}
-                    className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-white font-bold py-4 px-6 rounded-md shadow-md transition transform hover:scale-[1.02]"
-                  >
-                    <ChartPie className="mr-2 h-4 w-4" /> Generate Nutrition Report
-                  </Button>
+                  <>
+                    <Button 
+                      onClick={handleGenerateReport}
+                      className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-white font-bold py-4 px-6 rounded-md shadow-md transition transform hover:scale-[1.02]"
+                    >
+                      <ChartPie className="mr-2 h-4 w-4" /> Generate Nutrition Report
+                    </Button>
+                    
+                    {/* Show multi-child report button if multiple children exist */}
+                    {childInfo?.children && childInfo.children.length > 1 && (
+                      <Button 
+                        onClick={handleGenerateMultiChildReport}
+                        className="w-full bg-gradient-to-r from-purple-600 to-indigo-700 hover:opacity-90 text-white font-bold py-4 px-6 rounded-md shadow-md transition transform hover:scale-[1.02]"
+                      >
+                        <Users className="mr-2 h-4 w-4" /> Generate Multi-Child Report
+                      </Button>
+                    )}
+                  </>
                 ) : (
                   <div className="text-center text-gray-500 bg-gray-100 rounded-md p-3 mb-3 text-sm">
                     <p>Nutrition reports can only be generated for today's date.</p>
@@ -876,12 +888,35 @@ export default function Home() {
             </div>
           </div>
         ) : (
-          <NutritionReportView 
-            report={report} 
-            isLoading={isLoading} 
-            onBack={() => setView("entry")}
-            error={reportError}
-          />
+          <div className="animate-in fade-in">
+            {/* Show multi-child report if available */}
+            {multiChildReport && Object.keys(multiChildReport.childReports).length > 0 ? (
+              <div>
+                <div className="mb-4 flex justify-between items-center">
+                  <h2 className="font-inter font-bold text-xl">Family Nutrition Report</h2>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setView("entry")}
+                    className="text-purple-600 border-purple-200 hover:bg-purple-50"
+                  >
+                    <ArrowLeft className="mr-1 h-4 w-4" /> Back
+                  </Button>
+                </div>
+                <MultiChildReportTabs 
+                  multiChildReport={multiChildReport} 
+                  childInfo={childInfo!} 
+                />
+              </div>
+            ) : (
+              <NutritionReportView 
+                report={report} 
+                isLoading={isLoading} 
+                onBack={() => setView("entry")}
+                error={reportError}
+              />
+            )}
+          </div>
         )}
         {/* Report History Modal */}
         <ReportHistoryModal
