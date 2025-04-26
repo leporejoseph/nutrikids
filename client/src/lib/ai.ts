@@ -31,7 +31,7 @@ export async function generateNutritionReport({
     });
 
     // Get the response text from the API response
-    const responseText = result.response.text();
+    const responseText = result.text;
 
     try {
       const parsedReport = JSON.parse(responseText);

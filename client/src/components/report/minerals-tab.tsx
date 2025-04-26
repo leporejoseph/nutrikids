@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { Nutrient } from "@shared/schema";
-import { Chart } from "chart.js";
+import { Chart, registerables } from "chart.js";
+Chart.register(...registerables);
 
 interface MineralsTabProps {
   minerals: Nutrient[];
