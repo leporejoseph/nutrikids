@@ -115,10 +115,9 @@ export default function FoodItemList({ items, onDelete, onUpdate, onAddFood, sel
 
   const handleEdit = (item: FoodItem) => {
     setEditingId(item.id);
-    // If the item has a childId, pre-select it in the dropdown
-    if (item.childId) {
-      setSelectedChildId(item.childId);
-    }
+    // Set selected child ID based on item, use 'none' if undefined/null
+    setSelectedChildId(item.childId || null);
+    
     form.reset({
       name: item.name,
       quantity: item.quantity,

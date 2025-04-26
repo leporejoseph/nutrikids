@@ -263,14 +263,14 @@ export default function FoodEntryForm({ onAddFood, selectedDate }: FoodEntryForm
                 <Users className="mr-2 h-4 w-4" /> Child Association
               </FormLabel>
               <Select 
-                value={selectedChildId || ""} 
-                onValueChange={(value) => setSelectedChildId(value === "" ? null : value)}
+                value={selectedChildId || "none"} 
+                onValueChange={(value) => setSelectedChildId(value === "none" ? null : value)}
               >
                 <SelectTrigger className="p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-accent focus:border-accent">
                   <SelectValue placeholder="Select child or leave empty for all" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Children (No specific child)</SelectItem>
+                  <SelectItem value="none">All Children (No specific child)</SelectItem>
                   {childInfo.children.map(child => (
                     <SelectItem key={child.id} value={child.id}>
                       {child.name || `Child ${childInfo.children.findIndex(c => c.id === child.id) + 1}`}
