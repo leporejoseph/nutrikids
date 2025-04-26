@@ -32,6 +32,31 @@ export const MEAL_TYPES = [
   { value: "beverage", label: "Beverage" },
 ];
 
+// Supplement Units
+export const SUPPLEMENT_UNITS = [
+  { value: "pill", label: "pill(s)" },
+  { value: "capsule", label: "capsule(s)" },
+  { value: "tablet", label: "tablet(s)" },
+  { value: "drop", label: "drop(s)" },
+  { value: "ml", label: "ml" },
+  { value: "mcg", label: "mcg" },
+  { value: "mg", label: "mg" },
+  { value: "gummy", label: "gummy(s)" },
+  { value: "packet", label: "packet(s)" },
+];
+
+// Supplement Frequencies
+export const SUPPLEMENT_FREQUENCIES = [
+  { value: "daily", label: "Daily" },
+  { value: "twice_daily", label: "Twice daily" },
+  { value: "three_times_daily", label: "Three times daily" },
+  { value: "weekly", label: "Weekly" },
+  { value: "as_needed", label: "As needed" },
+  { value: "with_food", label: "With food" },
+  { value: "before_food", label: "Before food" },
+  { value: "after_food", label: "After food" },
+];
+
 // Dietary Restrictions
 export const DIETARY_RESTRICTIONS = [
   { value: "none", label: "None" },
@@ -48,6 +73,7 @@ export const STORAGE_KEYS = {
   CHILD_INFO: "nutrikids-child-info",
   APP_SETTINGS: "nutrikids-app-settings",
   NUTRITION_REPORT: "nutrikids-nutrition-report",
+  FOOD_PLANS: "nutrikids-food-plans",
 };
 
 // Default Values

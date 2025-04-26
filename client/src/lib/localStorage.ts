@@ -175,3 +175,64 @@ export function clearNutritionReport(): void {
     console.error("Error clearing nutrition report from localStorage:", error);
   }
 }
+
+// Food plans management
+export function getFoodPlans(): FoodPlan[] {
+  try {
+    const plans = localStorage.getItem(STORAGE_KEYS.FOOD_PLANS);
+    return plans ? JSON.parse(plans) : [];
+  } catch (error) {
+    console.error("Error retrieving food plans from localStorage:", error);
+    return [];
+  }
+}
+
+export function saveFoodPlan(plan: FoodPlan): void {
+  try {
+    const plans = getFoodPlans();
+    
+    // Check if plan with this ID already exists
+    const existingPlanIndex = plans.findIndex(p => p.id === plan.id);
+    
+    if (existingPlanIndex >= 0) {
+      // Update existing plan
+      plans[existingPlanIndex] = plan;
+    } else {
+      // Add new plan
+      plans.push(plan);
+    }
+    
+    // If this is the default plan, make sure no others are marked as default
+    if (plan.isDefault) {
+      plans.forEach(p => {
+        if (p.id !== plan.id) {
+          p.isDefault = false;
+        }
+      });
+    }
+    
+    localStorage.setItem(STORAGE_KEYS.FOOD_PLANS, JSON.stringify(plans));
+  } catch (error) {
+    console.error("Error saving food plan to localStorage:", error);
+  }
+}
+
+export function deleteFoodPlan(planId: string): void {
+  try {
+    const plans = getFoodPlans();
+    const updatedPlans = plans.filter(plan => plan.id !== planId);
+    localStorage.setItem(STORAGE_KEYS.FOOD_PLANS, JSON.stringify(updatedPlans));
+  } catch (error) {
+    console.error("Error deleting food plan from localStorage:", error);
+  }
+}
+
+export function getDefaultFoodPlan(): FoodPlan | null {
+  try {
+    const plans = getFoodPlans();
+    return plans.find(plan => plan.isDefault) || null;
+  } catch (error) {
+    console.error("Error getting default food plan from localStorage:", error);
+    return null;
+  }
+}

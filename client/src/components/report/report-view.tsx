@@ -142,6 +142,8 @@ export default function NutritionReportView({ report, isLoading, onBack, error }
               <RecommendationsTab
                 recommendations={report.recommendations}
                 foodSuggestions={report.foodSuggestions}
+                supplementRecommendations={report.supplementRecommendations}
+                supplementCautions={report.supplementCautions}
               />
             )}
           </div>
