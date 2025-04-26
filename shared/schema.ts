@@ -54,8 +54,6 @@ export type ChildInfo = z.infer<typeof childInfoSchema>;
 export const appSettingsSchema = z.object({
   apiKey: z.string().optional().default(""),
   selectedModel: z.string().optional().default("gemini-2.5-flash"),
-  darkMode: z.boolean().optional().default(false),
-  notifications: z.boolean().optional().default(false),
   encryptedApiKey: z.string().optional(),
   apiKeyTimestamp: z.number().optional(),
 });

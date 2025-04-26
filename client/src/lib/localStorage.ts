@@ -138,12 +138,7 @@ export function saveAppSettings(settings: AppSettings): void {
       localStorage.setItem(STORAGE_KEYS.APP_SETTINGS, JSON.stringify(settingsToSave));
     }
     
-    // Apply dark mode if enabled
-    if (settings.darkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
+    // Dark mode functionality removed
   } catch (error) {
     console.error("Error saving app settings to localStorage:", error);
   }

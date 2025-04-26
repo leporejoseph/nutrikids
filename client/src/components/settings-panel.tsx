@@ -455,49 +455,7 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
               </div>
             </div>
 
-            {/* App Preferences */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-              <h3 className="font-semibold text-lg mb-3">App Preferences</h3>
-              <div className="space-y-4">
-                <Form {...settingsForm}>
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium">Dark Mode</span>
-                    <FormField
-                      control={settingsForm.control}
-                      name="darkMode"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <Switch
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  
-                  <div className="flex items-center justify-between mt-4">
-                    <span className="font-medium">Notification Reminders</span>
-                    <FormField
-                      control={settingsForm.control}
-                      name="notifications"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <Switch
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </Form>
-              </div>
-            </div>
+            {/* App Settings section removed as requested */}
           </form>
           
           {/* Floating Save Button */}
