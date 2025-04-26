@@ -53,9 +53,10 @@ export default function FoodItemList({ items, onDelete, onUpdate }: FoodItemList
     setEditingId(null);
   };
 
-  // Convert meal type to capitalized format
+  // Format meal type to display the proper label
   const formatMealType = (mealType: string) => {
-    return mealType.charAt(0).toUpperCase() + mealType.slice(1);
+    const mealTypeObj = MEAL_TYPES.find(meal => meal.value === mealType);
+    return mealTypeObj ? mealTypeObj.label : mealType.charAt(0).toUpperCase() + mealType.slice(1);
   };
 
   if (items.length === 0) {

@@ -138,11 +138,35 @@ export default function FoodEntryForm({ onAddFood, selectedDate }: FoodEntryForm
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {MEAL_TYPES.map((meal) => (
-                      <SelectItem key={meal.value} value={meal.value}>
-                        {meal.label}
-                      </SelectItem>
-                    ))}
+                    <SelectItem value="breakfast">Breakfast</SelectItem>
+                    
+                    <SelectItem value="morning_snack" className="text-sm text-muted-foreground">
+                      Morning Snack
+                    </SelectItem>
+                    
+                    <SelectItem value="lunch">Lunch</SelectItem>
+                    
+                    <SelectItem value="afternoon_snack" className="text-sm text-muted-foreground">
+                      Afternoon Snack
+                    </SelectItem>
+                    
+                    <SelectItem value="dinner">Dinner</SelectItem>
+                    
+                    <SelectItem value="dessert" className="text-sm text-muted-foreground">
+                      Dessert
+                    </SelectItem>
+                    
+                    <SelectItem value="evening_snack" className="text-sm text-muted-foreground">
+                      Evening Snack
+                    </SelectItem>
+                    
+                    <SelectItem value="beverage" className="text-sm text-muted-foreground">
+                      Beverage
+                    </SelectItem>
+                    
+                    <SelectItem value="snack" className="text-sm text-muted-foreground">
+                      Snack (Other)
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </FormItem>

@@ -22,9 +22,14 @@ export const FOOD_UNITS = [
 // Meal Types
 export const MEAL_TYPES = [
   { value: "breakfast", label: "Breakfast" },
+  { value: "morning_snack", label: "Morning Snack" },
   { value: "lunch", label: "Lunch" },
+  { value: "afternoon_snack", label: "Afternoon Snack" },
   { value: "dinner", label: "Dinner" },
-  { value: "snack", label: "Snack" },
+  { value: "dessert", label: "Dessert" },
+  { value: "evening_snack", label: "Evening Snack" },
+  { value: "snack", label: "Snack (Other)" },
+  { value: "beverage", label: "Beverage" },
 ];
 
 // Dietary Restrictions
