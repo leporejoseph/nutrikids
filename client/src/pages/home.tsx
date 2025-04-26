@@ -95,13 +95,30 @@ export default function Home() {
     loadData();
   }, []);
   
-  // Filter items by selected date
+  // Filter items by selected date and child (if a child is selected)
   const filteredItems = useMemo(() => {
-    return foodItems.filter(item => item.date === selectedDate);
-  }, [foodItems, selectedDate]);
+    return foodItems.filter(item => {
+      // Always filter by date
+      const dateMatches = item.date === selectedDate;
+      
+      // If a child is selected, also filter by childId
+      if (selectedChildId) {
+        // Include items specifically for this child or items with no childId (general items)
+        return dateMatches && (!item.childId || item.childId === selectedChildId);
+      }
+      
+      return dateMatches;
+    });
+  }, [foodItems, selectedDate, selectedChildId]);
 
   const handleAddFood = async (food: FoodItem) => {
-    const updatedItems = [...foodItems, food];
+    // Associate the food item with the selected child (if any)
+    const foodWithChildId = {
+      ...food,
+      childId: selectedChildId || undefined
+    };
+    
+    const updatedItems = [...foodItems, foodWithChildId];
     setFoodItems(updatedItems);
     try {
       await saveFoodItems(updatedItems);
@@ -139,6 +156,8 @@ export default function Home() {
       id: crypto.randomUUID(), // Generate new IDs to avoid conflicts
       date: selectedDate, // Set to the currently selected date
       createdAt: Date.now(), // Update the creation timestamp
+      // Keep or set the childId - if loading from a general plan, associate with selected child
+      childId: item.childId || selectedChildId || undefined
     }));
     
     // Add the items to the current food items
@@ -176,11 +195,15 @@ export default function Home() {
       id: crypto.randomUUID(),
       name,
       description,
-      items: filteredItems,
+      items: filteredItems.map(item => ({
+        ...item,
+        // Convert undefined to null for childId
+        childId: item.childId ?? null
+      })),
       createdAt: Date.now(),
       isDefault,
       // Associate with the selected child if child-specific is selected
-      childId: isChildSpecific ? selectedChildId : null
+      childId: isChildSpecific && selectedChildId ? selectedChildId : null
     };
     
     try {
