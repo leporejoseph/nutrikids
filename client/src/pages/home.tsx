@@ -51,10 +51,7 @@ export default function Home() {
   const [childInfo, setChildInfo] = useState<ChildInfo | null>(null);
   const { toast } = useToast();
   
-  // Get the selected child ID
-  const selectedChildId = useMemo(() => {
-    return childInfo?.selectedChildId || null;
-  }, [childInfo]);
+  // No longer using selected child ID - all children are treated equally
   
   // Check if selected date is today
   const isToday = useMemo(() => {
