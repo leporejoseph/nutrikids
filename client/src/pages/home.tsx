@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { format } from "date-fns";
-import { FoodItem, NutritionReport, FoodPlan, ReportHistoryItem } from "@shared/schema";
+import { FoodItem, NutritionReport, FoodPlan, ReportHistoryItem, ChildInfo } from "@shared/schema";
 import Header from "@/components/header";
 import FoodEntryForm from "@/components/food-entry-form";
 import SupplementEntryForm from "@/components/supplement-entry-form";
@@ -12,7 +12,7 @@ import ReportHistoryModal from "@/components/report/report-history-modal";
 import { APP_IMAGES } from "@/lib/constants";
 import { getFoodItems, saveFoodItems, getAppSettings, getChildInfo, saveNutritionReport, getNutritionReport, getFoodPlans, saveFoodPlan, deleteFoodPlan, getReportHistory } from "@/lib/storage";
 import { Button } from "@/components/ui/button";
-import { ChartPie, Apple, Pill, BookmarkPlus, Save, BookmarkCheck, Star, Coffee, Upload, Trash2, MinusCircle, History, FileText } from "lucide-react";
+import { ChartPie, Apple, Pill, BookmarkPlus, Save, BookmarkCheck, Star, Coffee, Upload, Trash2, MinusCircle, History, FileText, Users } from "lucide-react";
 import { generateNutritionReport } from "@/lib/ai";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -32,7 +32,13 @@ export default function Home() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isLoadDialogOpen, setIsLoadDialogOpen] = useState(false);
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+  const [childInfo, setChildInfo] = useState<ChildInfo | null>(null);
   const { toast } = useToast();
+  
+  // Get the selected child ID
+  const selectedChildId = useMemo(() => {
+    return childInfo?.selectedChildId || null;
+  }, [childInfo]);
   
   // Check if selected date is today
   const isToday = useMemo(() => {
@@ -41,16 +47,20 @@ export default function Home() {
   }, [selectedDate]);
 
   useEffect(() => {
-    // Load saved food plans
-    const loadPlans = async () => {
+    // Load saved food plans and child information
+    const loadData = async () => {
       try {
         const foodPlans = await getFoodPlans();
         setPlans(foodPlans);
+        
+        // Load child information
+        const loadedChildInfo = await getChildInfo();
+        setChildInfo(loadedChildInfo);
       } catch (error) {
-        console.error("Error loading food plans:", error);
+        console.error("Error loading initial data:", error);
       }
     };
-    loadPlans();
+    loadData();
   }, []);
 
   useEffect(() => {
@@ -152,7 +162,7 @@ export default function Home() {
     }
   };
   
-  const handleSaveFoodPlan = async (name: string, description: string, isDefault: boolean) => {
+  const handleSaveFoodPlan = async (name: string, description: string, isDefault: boolean, isChildSpecific: boolean = true) => {
     if (filteredItems.length === 0) {
       toast({
         title: "No items to save",
@@ -168,7 +178,9 @@ export default function Home() {
       description,
       items: filteredItems,
       createdAt: Date.now(),
-      isDefault
+      isDefault,
+      // Associate with the selected child if child-specific is selected
+      childId: isChildSpecific ? selectedChildId : null
     };
     
     try {
@@ -398,8 +410,10 @@ export default function Home() {
                       const name = (form.elements.namedItem('planName') as HTMLInputElement).value;
                       const description = (form.elements.namedItem('planDescription') as HTMLTextAreaElement).value;
                       const isDefault = (form.elements.namedItem('isDefault') as HTMLInputElement).checked;
+                      const isChildSpecificElem = form.elements.namedItem('isChildSpecific') as HTMLInputElement;
+                      const isChildSpecific = isChildSpecificElem ? isChildSpecificElem.checked : false;
                       
-                      handleSaveFoodPlan(name, description, isDefault);
+                      handleSaveFoodPlan(name, description, isDefault, isChildSpecific);
                     }}
                     className="space-y-4"
                   >
@@ -440,6 +454,23 @@ export default function Home() {
                         Set as default plan
                       </label>
                     </div>
+                    
+                    {childInfo?.children && childInfo.children.length > 0 && (
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          id="isChildSpecific"
+                          name="isChildSpecific"
+                          className="rounded border-gray-300"
+                          defaultChecked={true}
+                        />
+                        <label htmlFor="isChildSpecific" className="text-sm">
+                          {childInfo.selectedChildId ? 
+                            `Make specific to ${childInfo.children.find(c => c.id === childInfo.selectedChildId)?.name || 'selected child'}` 
+                            : 'Make specific to selected child'}
+                        </label>
+                      </div>
+                    )}
                     
                     <div className="pt-2">
                       <h3 className="font-medium text-md mb-2">Items in this plan ({filteredItems.length})</h3>
