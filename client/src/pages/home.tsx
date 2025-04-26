@@ -297,7 +297,7 @@ export default function Home() {
     });
   };
   
-  // Generate a multi-child report for all children
+  // Generate a nutrition report for all children based on assigned food items
   const handleGenerateMultiChildReport = async () => {
     // Reset any previous errors
     setReportError(null);
@@ -332,12 +332,12 @@ export default function Home() {
         return;
       }
       
-      // Check if we have multiple children to generate report for
-      if (!childInfo || !childInfo.children || childInfo.children.length <= 1) {
-        const errorMsg = "You need to add multiple children in settings to generate a multi-child report.";
+      // Check if we have children to generate report for
+      if (!childInfo || !childInfo.children || childInfo.children.length === 0) {
+        const errorMsg = "Please add at least one child in settings to generate a report.";
         setReportError(errorMsg);
         toast({
-          title: "Not Enough Children",
+          title: "No Children Defined",
           description: errorMsg,
           variant: "destructive",
         });
@@ -358,33 +358,52 @@ export default function Home() {
       // Successfully generated multi-child report
       setMultiChildReport(newMultiChildReport);
       await saveMultiChildReport(newMultiChildReport);
+      
+      // Clear any single report when we have a multi-child report
+      setReport(null);
+      
+      // Save individual reports to history
+      for (const childId in newMultiChildReport.childReports) {
+        const childReport = newMultiChildReport.childReports[childId];
+        // Only save non-empty reports to history
+        if (childReport && childReport.macronutrients && childReport.macronutrients.length > 0) {
+          await saveReportToHistory(childReport);
+        }
+      }
+      
       setReportError(null);
       
+      // Refresh report history after saving
+      const history = await getReportHistory();
+      setReportHistory(history);
+      
       toast({
-        title: "Multi-Child Report Generated",
+        title: "Nutrition Report Generated",
         description: `Created reports for ${Object.keys(newMultiChildReport.childReports).length} children`,
       });
       
     } catch (error) {
-      console.error("Error generating multi-child report:", error);
+      console.error("Error generating nutrition report:", error);
       const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
       
       // Set the error to be displayed in the report view
       setReportError(errorMessage);
       
       toast({
-        title: "Error Generating Multi-Child Report",
+        title: "Error Generating Nutrition Report",
         description: errorMessage,
         variant: "destructive",
       });
       
-      // Clear any previous report when there's an error
+      // Clear any previous reports when there's an error
       setMultiChildReport(null);
+      setReport(null);
     } finally {
       setIsLoading(false);
     }
   };
   
+  // Legacy method - use handleGenerateMultiChildReport instead
   const handleGenerateReport = async () => {
     // Reset any previous errors
     setReportError(null);

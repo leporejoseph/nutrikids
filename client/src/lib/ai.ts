@@ -572,12 +572,12 @@ export async function generateMultiChildReport({
         // Filter food items that are associated with this child
         const childFoodItems = foodItems.filter(item => {
           // Include item if:
-          // 1. It has no childId (applies to all children)
-          // 2. The item's childId matches this child's id 
-          // 3. The item's childIds array includes this child's id
-          return !item.childId || 
-                 item.childId === child.id || 
-                 (item.childIds && item.childIds.includes(child.id));
+          // 1. The item's childIds array includes this child's id (primary check)
+          // 2. Or if childIds is not present, fallback to childId for backwards compatibility
+          // 3. Or if neither childIds nor childId is present, it applies to all children
+          return (item.childIds && item.childIds.includes(child.id)) || 
+                 (!item.childIds && item.childId === child.id) || 
+                 (!item.childIds && !item.childId);
         });
         
         if (childFoodItems.length === 0) {
