@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { AppSettings, ChildInfo, childInfoSchema, appSettingsSchema } from "@shared/schema";
 import { DEFAULT_APP_SETTINGS, DEFAULT_CHILD_INFO, GEMINI_MODELS, DIETARY_RESTRICTIONS } from "@/lib/constants";
-import { getAppSettings, saveAppSettings, getChildInfo, saveChildInfo } from "@/lib/localStorage";
+import { getAppSettings, saveAppSettings, getChildInfo, saveChildInfo } from "@/lib/storage";
 import { X, Check, Shield, Save, Loader2 } from "lucide-react";
 import { fetchAvailableGeminiModels, GeminiModel } from "@/lib/ai";
 import { useForm, Controller } from "react-hook-form";
@@ -38,21 +38,35 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
 
   useEffect(() => {
     if (isOpen) {
-      const storedSettings = getAppSettings();
-      const storedChildInfo = getChildInfo();
+      const loadSettings = async () => {
+        try {
+          const storedSettings = await getAppSettings();
+          const storedChildInfo = await getChildInfo();
+          
+          // Now we have the actual objects
+          setSettings(storedSettings);
+          setChildInfo(storedChildInfo);
+          
+          settingsForm.reset(storedSettings);
+          childInfoForm.reset(storedChildInfo);
+          
+          // If API key is present, fetch available models
+          if (storedSettings.apiKey) {
+            fetchModels(storedSettings.apiKey);
+          }
+        } catch (error) {
+          console.error("Error loading settings:", error);
+          toast({
+            title: "Error Loading Settings",
+            description: "There was a problem loading your settings. Default values will be used.",
+            variant: "destructive",
+          });
+        }
+      };
       
-      setSettings(storedSettings);
-      setChildInfo(storedChildInfo);
-      
-      settingsForm.reset(storedSettings);
-      childInfoForm.reset(storedChildInfo);
-      
-      // If API key is present, fetch available models
-      if (storedSettings.apiKey) {
-        fetchModels(storedSettings.apiKey);
-      }
+      loadSettings();
     }
-  }, [isOpen, settingsForm, childInfoForm]);
+  }, [isOpen, settingsForm, childInfoForm, toast]);
   
   // Function to fetch available models when API key is provided
   const fetchModels = async (apiKey: string) => {
@@ -100,7 +114,7 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
     }
   };
 
-  const handleSaveSettings = (data: AppSettings) => {
+  const handleSaveSettings = async (data: AppSettings) => {
     // Make sure we're saving the latest model ID
     const currentModel = data.selectedModel;
     
@@ -114,44 +128,73 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
       }
     }
     
-    // Save settings to local storage
-    saveAppSettings(data);
-    
-    // Update app state
-    setSettings(data);
-    
-    toast({
-      title: "Settings Saved",
-      description: "Your settings have been saved successfully.",
-    });
-    
-    onClose();
+    try {
+      // Save settings to cloud storage
+      await saveAppSettings(data);
+      
+      // Update app state
+      setSettings(data);
+      
+      // Apply dark mode setting immediately if it changed
+      if (data.darkMode) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+      
+      toast({
+        title: "Settings Saved",
+        description: "Your settings have been saved successfully.",
+      });
+      
+      onClose();
+    } catch (error) {
+      console.error("Error saving settings:", error);
+      toast({
+        title: "Error Saving Settings",
+        description: "There was a problem saving your settings. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleSaveChildInfo = (data: ChildInfo) => {
-    saveChildInfo(data);
-    setChildInfo(data);
-    
-    toast({
-      title: "Child Information Saved",
-      description: "Your child's information has been saved successfully.",
-    });
-    
-    onClose();
+  const handleSaveChildInfo = async (data: ChildInfo) => {
+    try {
+      await saveChildInfo(data);
+      setChildInfo(data);
+      
+      toast({
+        title: "Child Information Saved",
+        description: "Your child's information has been saved successfully.",
+      });
+      
+      onClose();
+    } catch (error) {
+      console.error("Error saving child information:", error);
+      toast({
+        title: "Error Saving Information",
+        description: "There was a problem saving your child's information. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Always save regardless of validation state since all fields are optional
     const settingsData = settingsForm.getValues();
     const childInfoData = childInfoForm.getValues();
     
-    // Save settings
-    handleSaveSettings(settingsData);
-    
-    // Save child info
-    handleSaveChildInfo(childInfoData);
+    try {
+      // Save settings
+      await handleSaveSettings(settingsData);
+      
+      // Save child info
+      await handleSaveChildInfo(childInfoData);
+    } catch (error) {
+      console.error("Error saving form data:", error);
+    }
   };
 
   if (!isOpen) return null;

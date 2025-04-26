@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { format } from "date-fns";
-import { FoodItem, NutritionReport, FoodPlan } from "@shared/schema";
+import { FoodItem, NutritionReport, FoodPlan, ReportHistoryItem } from "@shared/schema";
 import Header from "@/components/header";
 import FoodEntryForm from "@/components/food-entry-form";
 import SupplementEntryForm from "@/components/supplement-entry-form";
@@ -372,7 +372,7 @@ export default function Home() {
                 
                 {/* History button - always show if there are reports in history */}
                 {/* Using state variable to check for report history instead of direct call */}
-                {plans.length > 0 && (
+                {reportHistory.length > 0 && (
                   <Button 
                     onClick={() => setIsHistoryModalOpen(true)}
                     className="w-full bg-purple-700 hover:bg-purple-800 text-white py-3 px-6 rounded-md"
