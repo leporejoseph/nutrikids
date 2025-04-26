@@ -496,24 +496,12 @@ export default function Home() {
               <div id="generateReportBtnContainer" className="mt-6 space-y-2">
                 {/* Only show the Generate Report button for today's date */}
                 {isToday ? (
-                  <>
-                    <Button 
-                      onClick={handleGenerateReport}
-                      className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-white font-bold py-4 px-6 rounded-md shadow-md transition transform hover:scale-[1.02]"
-                    >
-                      <ChartPie className="mr-2 h-4 w-4" /> Generate Nutrition Report
-                    </Button>
-                    
-                    {/* Show multi-child report button if multiple children exist */}
-                    {childInfo?.children && childInfo.children.length > 1 && (
-                      <Button 
-                        onClick={handleGenerateMultiChildReport}
-                        className="w-full bg-gradient-to-r from-purple-600 to-indigo-700 hover:opacity-90 text-white font-bold py-4 px-6 rounded-md shadow-md transition transform hover:scale-[1.02]"
-                      >
-                        <Users className="mr-2 h-4 w-4" /> Generate Multi-Child Report
-                      </Button>
-                    )}
-                  </>
+                  <Button 
+                    onClick={handleGenerateMultiChildReport}
+                    className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-white font-bold py-4 px-6 rounded-md shadow-md transition transform hover:scale-[1.02]"
+                  >
+                    <ChartPie className="mr-2 h-4 w-4" /> Generate Nutrition Report
+                  </Button>
                 ) : (
                   <div className="text-center text-gray-500 bg-gray-100 rounded-md p-3 mb-3 text-sm">
                     <p>Nutrition reports can only be generated for today's date.</p>
@@ -889,7 +877,7 @@ export default function Home() {
           </div>
         ) : (
           <div className="animate-in fade-in">
-            {/* Show multi-child report if available */}
+            {/* Show multi-child report if available, otherwise show single child report */}
             {multiChildReport && Object.keys(multiChildReport.childReports).length > 0 ? (
               <div>
                 <div className="mb-4 flex justify-between items-center">

@@ -522,12 +522,13 @@ export async function generateMultiChildReport({
       throw new Error("No AI model selected. Please select a model in the settings.");
     }
 
-    // Get selected children from childInfo
-    const selectedChildren = childInfo.children.filter(child => child.isSelected);
-    
-    if (selectedChildren.length === 0) {
-      throw new Error("No children selected for analysis. Please select at least one child in settings.");
+    // Get all children from childInfo
+    if (!childInfo.children || childInfo.children.length === 0) {
+      throw new Error("No children found. Please add at least one child in settings.");
     }
+    
+    // Use all children for the report
+    const selectedChildren = childInfo.children;
     
     console.log(`Generating reports for ${selectedChildren.length} children in parallel...`);
     
