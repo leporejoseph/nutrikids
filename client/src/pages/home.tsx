@@ -9,9 +9,9 @@ import FoodPlanManager from "@/components/food-plan-manager";
 import DateSelector from "@/components/date-selector";
 import NutritionReportView from "@/components/report/report-view";
 import { APP_IMAGES } from "@/lib/constants";
-import { getFoodItems, saveFoodItems, getAppSettings, getChildInfo, saveNutritionReport, getNutritionReport, getFoodPlans, saveFoodPlan } from "@/lib/localStorage";
+import { getFoodItems, saveFoodItems, getAppSettings, getChildInfo, saveNutritionReport, getNutritionReport, getFoodPlans, saveFoodPlan, deleteFoodPlan } from "@/lib/localStorage";
 import { Button } from "@/components/ui/button";
-import { ChartPie, Apple, Pill, BookmarkPlus, Save, BookmarkCheck, Star, Coffee, Upload } from "lucide-react";
+import { ChartPie, Apple, Pill, BookmarkPlus, Save, BookmarkCheck, Star, Coffee, Upload, Trash2, MinusCircle } from "lucide-react";
 import { generateNutritionReport } from "@/lib/ai";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -131,6 +131,26 @@ export default function Home() {
     });
     
     setIsCreateDialogOpen(false);
+  };
+  
+  const handleDeleteFoodPlan = (planId: string, e: React.MouseEvent) => {
+    // Stop event propagation to prevent the plan from being loaded
+    e.stopPropagation();
+    
+    // Get the plan we're deleting for the toast message
+    const planToDelete = plans.find(plan => plan.id === planId);
+    
+    // Delete the plan
+    deleteFoodPlan(planId);
+    
+    // Refresh the plans list
+    setPlans(getFoodPlans());
+    
+    // Show a confirmation toast
+    toast({
+      title: "Plan deleted",
+      description: planToDelete ? `Plan "${planToDelete.name}" has been deleted.` : "Food plan has been deleted.",
+    });
   };
 
   const handleGenerateReport = async () => {
@@ -375,7 +395,7 @@ export default function Home() {
                     {plans.map((plan) => (
                       <div 
                         key={plan.id} 
-                        className="bg-white rounded-lg border border-gray-200 p-4 hover:border-blue-300 hover:bg-blue-50 cursor-pointer transition"
+                        className="bg-white rounded-lg border border-gray-200 p-4 hover:border-blue-300 hover:bg-blue-50 cursor-pointer transition relative"
                         onClick={() => {
                           handleLoadFoodPlan(plan.items);
                           setIsLoadDialogOpen(false);
@@ -398,7 +418,16 @@ export default function Home() {
                               {plan.items.length} items • {new Date(plan.createdAt).toLocaleDateString()}
                             </div>
                           </div>
-                          <BookmarkCheck className="h-5 w-5 text-green-500" />
+                          <div className="flex items-center space-x-2">
+                            <button 
+                              onClick={(e) => handleDeleteFoodPlan(plan.id, e)}
+                              className="p-1.5 text-red-500 hover:bg-red-50 rounded-full transition-colors"
+                              title="Delete plan"
+                            >
+                              <MinusCircle className="h-5 w-5" />
+                            </button>
+                            <BookmarkCheck className="h-5 w-5 text-green-500" />
+                          </div>
                         </div>
                       </div>
                     ))}

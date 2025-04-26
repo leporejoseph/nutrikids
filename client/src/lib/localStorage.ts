@@ -215,8 +215,15 @@ export function saveFoodPlan(plan: FoodPlan): void {
 export function deleteFoodPlan(planId: string): void {
   try {
     const plans = getFoodPlans();
+    const deletedPlan = plans.find(plan => plan.id === planId);
     const updatedPlans = plans.filter(plan => plan.id !== planId);
     localStorage.setItem(STORAGE_KEYS.FOOD_PLANS, JSON.stringify(updatedPlans));
+    
+    // If we deleted the default plan, we need to clear that reference
+    if (deletedPlan?.isDefault) {
+      // No default plan anymore - this is just an example, we don't actually
+      // store the default plan ID separately in this implementation
+    }
   } catch (error) {
     console.error("Error deleting food plan from localStorage:", error);
   }
