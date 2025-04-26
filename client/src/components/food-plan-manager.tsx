@@ -1,6 +1,6 @@
-import { useState } from "react";
-import { FoodPlan, FoodItem } from "@shared/schema";
-import { getFoodPlans, saveFoodPlan, deleteFoodPlan } from "@/lib/localStorage";
+import { useState, useEffect } from "react";
+import { FoodPlan, FoodItem, ChildInfo } from "@shared/schema";
+import { getFoodPlans, saveFoodPlan, deleteFoodPlan, getChildInfo } from "@/lib/storage";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -11,11 +11,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
 import { Star, StarOff, Plus, Trash2, Save, Bookmark, BookmarkCheck } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const foodPlanFormSchema = z.object({
   name: z.string().min(1, "Plan name is required"),
   description: z.string().optional(),
   isDefault: z.boolean().default(false),
+  isChildSpecific: z.boolean().default(true),
 });
 
 type FoodPlanFormValues = z.infer<typeof foodPlanFormSchema>;
@@ -23,11 +25,31 @@ type FoodPlanFormValues = z.infer<typeof foodPlanFormSchema>;
 interface FoodPlanManagerProps {
   currentItems: FoodItem[];
   onLoadPlan: (items: FoodItem[]) => void;
+  selectedChildId?: string | null;
 }
 
-export default function FoodPlanManager({ currentItems, onLoadPlan }: FoodPlanManagerProps) {
-  const [plans, setPlans] = useState<FoodPlan[]>(() => getFoodPlans());
+export default function FoodPlanManager({ currentItems, onLoadPlan, selectedChildId }: FoodPlanManagerProps) {
+  const [plans, setPlans] = useState<FoodPlan[]>([]);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [childInfo, setChildInfo] = useState<ChildInfo | null>(null);
+  
+  // Load plans and child info
+  useEffect(() => {
+    const loadData = async () => {
+      const loadedPlans = await getFoodPlans();
+      const loadedChildInfo = await getChildInfo();
+      
+      // Filter to show general plans and plans for the selected child
+      const filteredPlans = loadedPlans.filter(plan => 
+        !plan.childId || plan.childId === selectedChildId
+      );
+      
+      setPlans(filteredPlans);
+      setChildInfo(loadedChildInfo);
+    };
+    
+    loadData();
+  }, [selectedChildId]);
   
   const form = useForm<FoodPlanFormValues>({
     resolver: zodResolver(foodPlanFormSchema),
@@ -35,6 +57,7 @@ export default function FoodPlanManager({ currentItems, onLoadPlan }: FoodPlanMa
       name: "",
       description: "",
       isDefault: false,
+      isChildSpecific: true,
     },
   });
 

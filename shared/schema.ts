@@ -33,6 +33,7 @@ export const foodItemSchema = z.object({
   }).optional(),
   createdAt: z.number(),
   date: z.string().default(() => new Date().toISOString().split('T')[0]), // Store as YYYY-MM-DD
+  childId: z.string().optional(), // Added to associate food items with specific children
   user_id: z.string().optional(), // Added for Supabase integration
 });
 

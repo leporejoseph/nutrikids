@@ -152,6 +152,10 @@ export async function generateNutritionReport({
 
 // Mock report function for testing - only used when test API keys are provided
 function getMockNutritionReport(foodItems: FoodItem[], childInfo: ChildInfo): NutritionReport {
+  // Find the selected child
+  const selectedChild = childInfo.children?.find(child => child.id === childInfo.selectedChildId) 
+    || childInfo.children?.[0];
+  
   // Get the current date in YYYY-MM-DD format for the report
   const todayDate = new Date().toISOString().split('T')[0];
   
@@ -279,9 +283,36 @@ function getMockNutritionReport(foodItems: FoodItem[], childInfo: ChildInfo): Nu
 }
 
 function createAnalysisPrompt(foodItems: FoodItem[], childInfo: ChildInfo, historyItems?: FoodItem[]): string {
-  // Age-specific recommendations
-  const ageGroup = getAgeGroup(childInfo.age);
-
+  // Find the selected child from the childInfo
+  const selectedChild = childInfo.children?.find(child => child.id === childInfo.selectedChildId) 
+    || childInfo.children?.[0] 
+    || { 
+      id: "",
+      name: "", 
+      dateOfBirth: null, 
+      gender: "", 
+      weight: null, 
+      height: null,
+      weightUnit: "lb",
+      heightUnit: "in",
+      restrictions: []
+    };
+  
+  // Calculate age from date of birth if available
+  let age: number | null = null;
+  if (selectedChild.dateOfBirth) {
+    const birthDate = new Date(selectedChild.dateOfBirth);
+    const today = new Date();
+    age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+  }
+  
+  // Determine the age group for nutritional guidance
+  const ageGroup = getAgeGroup(age);
+  
   // Items to use for history analysis
   const itemsForHistory = historyItems || foodItems;
   
@@ -294,14 +325,16 @@ function createAnalysisPrompt(foodItems: FoodItem[], childInfo: ChildInfo, histo
   fiveDaysAgo.setDate(fiveDaysAgo.getDate() - 5);
   const fiveDaysAgoStr = fiveDaysAgo.toISOString().split('T')[0];
   
-  // Filter history items to only include those from the last 5 days
+  // Filter history items to only include those from the last 5 days and for the selected child
   const recentHistoryItems = itemsForHistory.filter(item => {
     const itemDate = item.date || new Date(item.createdAt).toISOString().split('T')[0];
+    const matchesChild = !selectedChild.id || !item.childId || item.childId === selectedChild.id;
     // Include if date is between 5 days ago and current date, but not the current date itself
-    return itemDate >= fiveDaysAgoStr && itemDate < currentDate;
+    // And only include items for the selected child if childId is present
+    return itemDate >= fiveDaysAgoStr && itemDate < currentDate && matchesChild;
   });
   
-  console.log(`Including ${recentHistoryItems.length} items from the previous 5 days in nutrition analysis`);
+  console.log(`Including ${recentHistoryItems.length} items from the previous 5 days in nutrition analysis for child: ${selectedChild.name || 'Unknown'}`);
   
   // Group food items by date
   const foodItemsByDate = recentHistoryItems.reduce((acc: {[key: string]: FoodItem[]}, item) => {
@@ -338,27 +371,32 @@ function createAnalysisPrompt(foodItems: FoodItem[], childInfo: ChildInfo, histo
     ? JSON.stringify(foodItemsByDate, null, 2)
     : "No historical data available from previous 5 days";
 
-  const restrictionsText = childInfo.restrictions?.length > 0 && !childInfo.restrictions.includes("none")
-    ? `The child has the following dietary restrictions: ${childInfo.restrictions.join(", ")}.`
+  const restrictionsText = selectedChild.restrictions?.length > 0 && !selectedChild.restrictions.includes("none")
+    ? `The child has the following dietary restrictions: ${selectedChild.restrictions.join(", ")}.`
     : "The child has no specific dietary restrictions.";
     
   // Format weight with appropriate unit
-  const weightText = childInfo.weight !== null 
-    ? `Weight: ${childInfo.weight} ${childInfo.weightUnit || 'lb'}${childInfo.weightUnit === 'lb' ? ' (convert to kg for analysis)' : ''}`
+  const weightText = selectedChild.weight !== null 
+    ? `Weight: ${selectedChild.weight} ${selectedChild.weightUnit || 'lb'}${selectedChild.weightUnit === 'lb' ? ' (convert to kg for analysis)' : ''}`
     : "Weight: Not provided";
     
   // Format height with appropriate unit
-  const heightText = childInfo.height !== null
-    ? `Height: ${childInfo.height} ${childInfo.heightUnit || 'in'}${childInfo.heightUnit === 'in' ? ' (convert to cm for analysis)' : ''}`
+  const heightText = selectedChild.height !== null
+    ? `Height: ${selectedChild.height} ${selectedChild.heightUnit || 'in'}${selectedChild.heightUnit === 'in' ? ' (convert to cm for analysis)' : ''}`
     : "Height: Not provided";
+
+  // Format age or date of birth for display
+  const ageText = selectedChild.dateOfBirth
+    ? `Date of Birth: ${selectedChild.dateOfBirth} (Age: ${age} years)`
+    : "Age: Not provided";
 
   const prompt = `
 You are a pediatric nutritionist with expertise in child nutrition. Your task is to analyze the following food intake for a child and provide a comprehensive nutritional analysis.
 
 CHILD INFORMATION:
-${childInfo.name ? `Name: ${childInfo.name}` : ""}
-${childInfo.age !== null ? `Age: ${childInfo.age} years` : "Age: Not provided"}
-${childInfo.gender ? `Gender: ${childInfo.gender}` : "Gender: Not provided"}
+${selectedChild.name ? `Name: ${selectedChild.name}` : ""}
+${ageText}
+${selectedChild.gender ? `Gender: ${selectedChild.gender}` : "Gender: Not provided"}
 ${weightText}
 ${heightText}
 ${restrictionsText}
