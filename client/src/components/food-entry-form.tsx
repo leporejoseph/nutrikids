@@ -38,7 +38,8 @@ export default function FoodEntryForm({ onAddFood, selectedDate }: FoodEntryForm
   const onSubmit = (values: FoodEntryFormValues) => {
     const currentDate = selectedDate || new Date().toISOString().split('T')[0];
     
-    const newFood: FoodItem = {
+    // Create a food item with the current date
+    const newFood = {
       id: crypto.randomUUID(),
       name: values.name,
       quantity: values.quantity,
@@ -46,7 +47,7 @@ export default function FoodEntryForm({ onAddFood, selectedDate }: FoodEntryForm
       mealType: values.mealType,
       createdAt: Date.now(),
       date: currentDate,
-    };
+    } as FoodItem;
     
     onAddFood(newFood);
     form.reset({

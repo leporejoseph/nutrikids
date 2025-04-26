@@ -101,7 +101,7 @@ export default function Home() {
       }
 
       const newReport = await generateNutritionReport({
-        foodItems,
+        foodItems: filteredFoodItems, // Only use food items from the selected date
         childInfo,
         apiKey: settings.apiKey,
         model: settings.selectedModel,
@@ -158,7 +158,7 @@ export default function Home() {
               />
             </div>
 
-            {foodItems.length > 0 && (
+            {filteredFoodItems.length > 0 && (
               <div id="generateReportBtnContainer" className="mt-6">
                 <Button 
                   onClick={handleGenerateReport}
