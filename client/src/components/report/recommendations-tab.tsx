@@ -1,8 +1,10 @@
-import { Check, Carrot, Apple, Egg, Fish } from "lucide-react";
+import { Check, Carrot, Apple, Egg, Fish, Pill, AlertCircle } from "lucide-react";
 
 interface RecommendationsTabProps {
   recommendations: string[];
   foodSuggestions: string[];
+  supplementRecommendations?: string[];
+  supplementCautions?: string[];
 }
 
 export default function RecommendationsTab({ recommendations, foodSuggestions }: RecommendationsTabProps) {

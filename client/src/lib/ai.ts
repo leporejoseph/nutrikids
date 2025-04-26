@@ -258,6 +258,16 @@ function getMockNutritionReport(foodItems: FoodItem[], childInfo: ChildInfo): Nu
       "Whole grain crackers with cheese",
       "Orange slices",
       "Salmon"
+    ],
+    supplementRecommendations: [
+      "A children's multivitamin may help fill nutritional gaps",
+      "Consider vitamin D supplementation during winter months",
+      "Omega-3 supplements could benefit cognitive development"
+    ],
+    supplementCautions: [
+      "Don't exceed recommended dosages for any supplement",
+      "Consult with a healthcare provider before starting new supplements",
+      "Avoid supplements with added sugars or artificial colors"
     ]
   };
 }
@@ -279,11 +289,24 @@ function createAnalysisPrompt(foodItems: FoodItem[], childInfo: ChildInfo, histo
     return acc;
   }, {});
 
-  // Create current day food items list
+  // Create current day food items list, separating food and supplements
   const selectedDate = foodItems[0]?.date || new Date().toISOString().split('T')[0];
-  const foodItemsList = foodItems
+  
+  const regularFoodItems = foodItems.filter(item => item.type === 'food' || !item.type);
+  const supplementItems = foodItems.filter(item => item.type === 'supplement');
+  
+  const foodItemsList = regularFoodItems
     .map((item) => `${item.quantity} ${item.unit} of ${item.name} (${item.mealType})`)
     .join("\n");
+    
+  const supplementsList = supplementItems.length > 0 
+    ? supplementItems.map((item) => {
+        const dosageInfo = item.supplementInfo?.dosage ? ` - Dosage: ${item.supplementInfo.dosage}` : '';
+        const frequencyInfo = item.supplementInfo?.frequency ? ` - Frequency: ${item.supplementInfo.frequency}` : '';
+        const purposeInfo = item.supplementInfo?.purpose ? ` - Purpose: ${item.supplementInfo.purpose}` : '';
+        return `${item.quantity} ${item.unit} of ${item.name}${dosageInfo}${frequencyInfo}${purposeInfo}`;
+      }).join("\n")
+    : "None recorded";
 
   // Create historical food data as JSON
   const historyJson = JSON.stringify(foodItemsByDate, null, 2);
@@ -315,6 +338,9 @@ ${restrictionsText}
 CURRENT DAY FOOD INTAKE (${selectedDate}):
 ${foodItemsList}
 
+CURRENT SUPPLEMENTS:
+${supplementsList}
+
 HISTORICAL FOOD DATA BY DATE:
 ${historyJson}
 
@@ -329,6 +355,8 @@ ANALYSIS INSTRUCTIONS:
 8. Consider seasonal eating patterns or recurring food preferences if evident in the historical data.
 9. Provide specific improvement recommendations based on both current and historical intake.
 10. Suggest 4-5 specific foods that would complement the current intake to improve nutritional balance.
+11. Provide 2-3 specific supplement recommendations if appropriate based on nutritional gaps.
+12. Include 2-3 cautions about supplement usage, potential interactions, or considerations.
 
 IMPORTANT: Format your response as a valid JSON object using the schema below. Do not include any explanations, markdown formatting, or text outside the JSON object. The response must be directly parseable as JSON:
 
@@ -367,6 +395,12 @@ IMPORTANT: Format your response as a valid JSON object using the schema below. D
     string
   ],
   "foodSuggestions": [
+    string
+  ],
+  "supplementRecommendations": [
+    string
+  ],
+  "supplementCautions": [
     string
   ]
 }
