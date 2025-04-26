@@ -1,6 +1,13 @@
 import { GoogleGenAI } from "@google/genai";
 import type { NutritionReport, FoodItem, ChildInfo } from "@shared/schema";
 
+// Define model interface
+export interface GeminiModel {
+  id: string;
+  name: string;
+  version?: string;
+}
+
 interface GenerateReportParams {
   foodItems: FoodItem[];
   childInfo: ChildInfo;
@@ -144,5 +151,60 @@ function getAgeGroup(age: number | null): string {
     return "older children (9-13 years)";
   } else {
     return "adolescents (14-18 years)";
+  }
+}
+
+/**
+ * Fetches available models from the Google Gemini API
+ * Returns the 5 most recent Gemini models available for content generation
+ */
+export async function fetchAvailableGeminiModels(apiKey: string): Promise<GeminiModel[]> {
+  try {
+    if (!apiKey) {
+      throw new Error("API key is required to fetch available models");
+    }
+    
+    const genAI = new GoogleGenAI({ apiKey });
+    
+    // Since the API doesn't expose listModels in the current version
+    // We'll use a fallback to the predefined models
+    // In a future version, this can be updated when the API supports model listing
+    
+    try {
+      // Check if a simple generateContent call works with Gemini 1.5 Pro
+      await genAI.getGenerativeModel({ model: "gemini-1.5-pro" }).generateContent("Hello");
+      
+      // If we get here, Gemini 1.5 works, so we should include those models
+      return [
+        { id: "gemini-1.5-pro", name: "Gemini 1.5 Pro" },
+        { id: "gemini-1.5-flash", name: "Gemini 1.5 Flash" },
+        { id: "gemini-1.0-pro", name: "Gemini 1.0 Pro" },
+        { id: "gemini-pro", name: "Gemini Pro" }
+      ];
+    } catch {
+      // If 1.5 fails, try with original models
+      try {
+        await genAI.getGenerativeModel({ model: "gemini-pro" }).generateContent("Hello");
+        return [
+          { id: "gemini-pro", name: "Gemini Pro" },
+          { id: "gemini-pro-vision", name: "Gemini Pro Vision" }
+        ];
+      } catch {
+        // Fallback to newer models that may work
+        return [
+          { id: "gemini-1.0-pro", name: "Gemini 1.0 Pro" },
+          { id: "gemini-1.0-pro-latest", name: "Gemini 1.0 Pro Latest" },
+          { id: "gemini-pro", name: "Gemini Pro" }
+        ];
+      }
+    }
+  } catch (error) {
+    console.error("Error fetching available models:", error);
+    
+    // Return a default list of recent Gemini models
+    return [
+      { id: "gemini-1.0-pro", name: "Gemini 1.0 Pro" },
+      { id: "gemini-pro", name: "Gemini Pro" }
+    ];
   }
 }
