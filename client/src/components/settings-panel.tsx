@@ -16,6 +16,7 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 
 interface SettingsPanelProps {
@@ -442,7 +443,7 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                                           </div>
                                         </div>
                                         
-                                        {/* Gender Field */}
+                                        {/* Gender Field - Updated for consistent heights */}
                                         <div>
                                           <FormLabel className="font-medium block mb-2">Gender</FormLabel>
                                           <Select 
@@ -456,7 +457,7 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                                               childInfoForm.setValue('children', newChildren);
                                             }}
                                           >
-                                            <SelectTrigger className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-accent focus:border-accent">
+                                            <SelectTrigger className="w-full h-10 border border-gray-300 rounded-md focus:ring-2 focus:ring-accent focus:border-accent">
                                               <SelectValue placeholder="Select" />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -479,7 +480,7 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                                               min="1" 
                                               step="0.1" 
                                               placeholder={`Weight in ${child.weightUnit === 'kg' ? 'kilograms' : 'pounds'}`}
-                                              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-accent focus:border-accent"
+                                              className="w-full h-10 border border-gray-300 rounded-md focus:ring-2 focus:ring-accent focus:border-accent"
                                               value={child.weight === null ? '' : child.weight.toString()}
                                               onChange={(e) => {
                                                 const value = e.target.value ? parseFloat(e.target.value) : null;
@@ -525,7 +526,7 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                                               type="number" 
                                               min={child.heightUnit === 'cm' ? "30" : "12"}
                                               placeholder={`Height in ${child.heightUnit === 'cm' ? 'centimeters' : 'inches'}`}
-                                              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-accent focus:border-accent"
+                                              className="w-full h-10 border border-gray-300 rounded-md focus:ring-2 focus:ring-accent focus:border-accent"
                                               value={child.height === null ? '' : child.height.toString()}
                                               onChange={(e) => {
                                                 const value = e.target.value ? parseFloat(e.target.value) : null;
