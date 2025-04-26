@@ -3,19 +3,22 @@ import { format } from "date-fns";
 import { FoodItem, NutritionReport } from "@shared/schema";
 import Header from "@/components/header";
 import FoodEntryForm from "@/components/food-entry-form";
+import SupplementEntryForm from "@/components/supplement-entry-form";
 import FoodItemList from "@/components/food-item-list";
 import DateSelector from "@/components/date-selector";
 import NutritionReportView from "@/components/report/report-view";
 import { APP_IMAGES } from "@/lib/constants";
 import { getFoodItems, saveFoodItems, getAppSettings, getChildInfo, saveNutritionReport, getNutritionReport } from "@/lib/localStorage";
 import { Button } from "@/components/ui/button";
-import { ChartPie } from "lucide-react";
+import { ChartPie, Apple, Pill } from "lucide-react";
 import { generateNutritionReport } from "@/lib/ai";
 import { useToast } from "@/hooks/use-toast";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function Home() {
   const [foodItems, setFoodItems] = useState<FoodItem[]>([]);
-  const [view, setView] = useState<"food" | "report">("food");
+  const [view, setView] = useState<"entry" | "report">("entry");
+  const [entryTab, setEntryTab] = useState<"food" | "supplement">("food");
   const [isLoading, setIsLoading] = useState(false);
   const [report, setReport] = useState<NutritionReport | null>(null);
   const [reportError, setReportError] = useState<string | null>(null);
@@ -42,9 +45,20 @@ export default function Home() {
     setReport(savedReport);
   }, []);
   
-  // Filter food items by selected date
+  // Filter food items by selected date and type
   const filteredFoodItems = useMemo(() => {
-    return foodItems.filter(item => item.date === selectedDate);
+    return foodItems.filter(item => 
+      item.date === selectedDate && 
+      (item.type === 'food' || !item.type)
+    );
+  }, [foodItems, selectedDate]);
+  
+  // Filter supplement items by selected date
+  const filteredSupplements = useMemo(() => {
+    return foodItems.filter(item => 
+      item.date === selectedDate && 
+      item.type === 'supplement'
+    );
   }, [foodItems, selectedDate]);
 
   const handleAddFood = (food: FoodItem) => {
@@ -100,9 +114,12 @@ export default function Home() {
         return;
       }
 
+      // Combine food items and supplements for the current date for analysis
+      const allCurrentItems = [...filteredFoodItems, ...filteredSupplements];
+      
       const newReport = await generateNutritionReport({
-        foodItems: filteredFoodItems, // The filtered food items for the current date analysis
-        historyItems: foodItems, // All food items for historical analysis
+        foodItems: allCurrentItems, // Both food and supplements for the current date 
+        historyItems: foodItems, // All historical items for trend analysis
         childInfo,
         apiKey: settings.apiKey,
         model: settings.selectedModel,
@@ -138,28 +155,63 @@ export default function Home() {
       <Header title="NutriKids" />
 
       <main className="p-4">
-        {view === "food" ? (
-          <div id="foodEntryView" className="animate-in fade-in">
+        {view === "entry" ? (
+          <div id="entryView" className="animate-in fade-in">
             <div className="mb-6">
-              <h2 className="font-inter font-bold text-xl mb-2">Food Tracker</h2>
-              <p className="text-gray-600">Add the food items your child has eaten</p>
+              <h2 className="font-inter font-bold text-xl mb-2">Nutrition Tracker</h2>
+              <p className="text-gray-600">Track your child's food and supplements</p>
             </div>
             
             {/* Date Selector */}
             <DateSelector selectedDate={selectedDate} onDateChange={setSelectedDate} />
+            
+            {/* Tabs for Food and Supplements */}
+            <Tabs defaultValue="food" className="w-full mt-4" onValueChange={(val) => setEntryTab(val as "food" | "supplement")}>
+              <TabsList className="grid w-full grid-cols-2 mb-4">
+                <TabsTrigger value="food" className="flex items-center justify-center gap-2">
+                  <Apple className="h-4 w-4" /> Food
+                </TabsTrigger>
+                <TabsTrigger value="supplement" className="flex items-center justify-center gap-2">
+                  <Pill className="h-4 w-4" /> Supplements
+                </TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="food" className="mt-0">
+                <FoodEntryForm onAddFood={handleAddFood} selectedDate={selectedDate} />
 
-            <FoodEntryForm onAddFood={handleAddFood} selectedDate={selectedDate} />
+                <div id="foodListContainer" className="mb-6">
+                  <h3 className="font-inter font-semibold text-lg mb-2">Food Items</h3>
+                  {filteredFoodItems.length > 0 ? (
+                    <FoodItemList 
+                      items={filteredFoodItems} 
+                      onDelete={handleDeleteFood} 
+                      onUpdate={handleUpdateFood} 
+                    />
+                  ) : (
+                    <p className="text-gray-500 text-center py-6">No food items added for this date.</p>
+                  )}
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="supplement" className="mt-0">
+                <SupplementEntryForm onAddSupplement={handleAddFood} selectedDate={selectedDate} />
 
-            <div id="foodListContainer" className="mb-6">
-              <h3 className="font-inter font-semibold text-lg mb-2">Food Items</h3>
-              <FoodItemList 
-                items={filteredFoodItems} 
-                onDelete={handleDeleteFood} 
-                onUpdate={handleUpdateFood} 
-              />
-            </div>
+                <div id="supplementListContainer" className="mb-6">
+                  <h3 className="font-inter font-semibold text-lg mb-2">Supplements</h3>
+                  {filteredSupplements.length > 0 ? (
+                    <FoodItemList 
+                      items={filteredSupplements} 
+                      onDelete={handleDeleteFood} 
+                      onUpdate={handleUpdateFood} 
+                    />
+                  ) : (
+                    <p className="text-gray-500 text-center py-6">No supplements added for this date.</p>
+                  )}
+                </div>
+              </TabsContent>
+            </Tabs>
 
-            {filteredFoodItems.length > 0 && (
+            {(filteredFoodItems.length > 0 || filteredSupplements.length > 0) && (
               <div id="generateReportBtnContainer" className="mt-6">
                 <Button 
                   onClick={handleGenerateReport}
@@ -181,7 +233,7 @@ export default function Home() {
           <NutritionReportView 
             report={report} 
             isLoading={isLoading} 
-            onBack={() => setView("food")}
+            onBack={() => setView("entry")}
             error={reportError}
           />
         )}
