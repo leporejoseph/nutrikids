@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { FoodItem } from "@shared/schema";
+import { FoodItem, ChildInfo } from "@shared/schema";
 import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -7,7 +7,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { FOOD_UNITS, DRINK_UNITS, SUPPLEMENT_UNITS, MEAL_TYPES, APP_IMAGES } from "@/lib/constants";
-import { Edit, MinusCircle, Check, Apple, Coffee, Pill, ChevronDown, ChevronUp, Plus } from "lucide-react";
+import { getChildInfo } from "@/lib/storage";
+import { Edit, MinusCircle, Check, Apple, Coffee, Pill, ChevronDown, ChevronUp, Plus, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface FoodItemListProps {
@@ -63,6 +64,22 @@ export default function FoodItemList({ items, onDelete, onUpdate, onAddFood, sel
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isAddingItem, setIsAddingItem] = useState(false);
   const [entryType, setEntryType] = useState<"food" | "drink" | "supplement">("food");
+  const [childInfo, setChildInfo] = useState<ChildInfo | null>(null);
+  const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
+  
+  // Load child information
+  useEffect(() => {
+    const loadChildInfo = async () => {
+      try {
+        const info = await getChildInfo();
+        setChildInfo(info);
+        setSelectedChildId(info.selectedChildId || null);
+      } catch (error) {
+        console.error("Error loading child info:", error);
+      }
+    };
+    loadChildInfo();
+  }, []);
   
   // Form for editing existing items
   const form = useForm<EditFoodFormValues>({
@@ -98,6 +115,10 @@ export default function FoodItemList({ items, onDelete, onUpdate, onAddFood, sel
 
   const handleEdit = (item: FoodItem) => {
     setEditingId(item.id);
+    // If the item has a childId, pre-select it in the dropdown
+    if (item.childId) {
+      setSelectedChildId(item.childId);
+    }
     form.reset({
       name: item.name,
       quantity: item.quantity,
@@ -108,7 +129,11 @@ export default function FoodItemList({ items, onDelete, onUpdate, onAddFood, sel
 
   const handleSave = (id: string) => {
     const values = form.getValues();
-    onUpdate(id, values);
+    // Include the childId in the update
+    onUpdate(id, {
+      ...values,
+      childId: selectedChildId || undefined
+    });
     setEditingId(null);
   };
   
@@ -163,6 +188,7 @@ export default function FoodItemList({ items, onDelete, onUpdate, onAddFood, sel
         type: entryType,
         createdAt: Date.now(),
         date: currentDate,
+        childId: selectedChildId || undefined, // Include the childId
       } as FoodItem;
       
       onAddFood(newItem);

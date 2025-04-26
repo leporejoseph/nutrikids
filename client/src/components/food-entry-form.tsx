@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { FoodItem } from "@shared/schema";
+import { FoodItem, ChildInfo } from "@shared/schema";
 import { FOOD_UNITS, DRINK_UNITS, SUPPLEMENT_UNITS, MEAL_TYPES } from "@/lib/constants";
+import { getChildInfo } from "@/lib/storage";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -8,7 +9,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Plus, Apple, Coffee, Pill } from "lucide-react";
+import { Plus, Apple, Coffee, Pill, Users } from "lucide-react";
 
 const foodEntrySchema = z.object({
   name: z.string().min(1, "Food name is required"),
@@ -26,6 +27,22 @@ interface FoodEntryFormProps {
 
 export default function FoodEntryForm({ onAddFood, selectedDate }: FoodEntryFormProps) {
   const [entryType, setEntryType] = useState<"food" | "drink" | "supplement">("food");
+  const [childInfo, setChildInfo] = useState<ChildInfo | null>(null);
+  const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
+  
+  // Load child information
+  useEffect(() => {
+    const loadChildInfo = async () => {
+      try {
+        const info = await getChildInfo();
+        setChildInfo(info);
+        setSelectedChildId(info.selectedChildId || null);
+      } catch (error) {
+        console.error("Error loading child info:", error);
+      }
+    };
+    loadChildInfo();
+  }, []);
   
   // Get intelligent default meal type based on current time
   const getDefaultMealType = () => {
@@ -83,6 +100,7 @@ export default function FoodEntryForm({ onAddFood, selectedDate }: FoodEntryForm
       type: entryType, // Add the selected type
       createdAt: Date.now(),
       date: currentDate,
+      childId: selectedChildId || undefined, // Associate with selected child
     } as FoodItem;
     
     onAddFood(newFood);
@@ -237,6 +255,34 @@ export default function FoodEntryForm({ onAddFood, selectedDate }: FoodEntryForm
               </FormItem>
             )}
           />
+          
+          {/* Child selector */}
+          {childInfo?.children && childInfo.children.length > 0 && (
+            <div className="space-y-2">
+              <FormLabel className="font-medium flex items-center">
+                <Users className="mr-2 h-4 w-4" /> Child Association
+              </FormLabel>
+              <Select 
+                value={selectedChildId || ""} 
+                onValueChange={(value) => setSelectedChildId(value === "" ? null : value)}
+              >
+                <SelectTrigger className="p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-accent focus:border-accent">
+                  <SelectValue placeholder="Select child or leave empty for all" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">All Children (No specific child)</SelectItem>
+                  {childInfo.children.map(child => (
+                    <SelectItem key={child.id} value={child.id}>
+                      {child.name || `Child ${childInfo.children.findIndex(c => c.id === child.id) + 1}`}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-gray-500">
+                Select a specific child or leave empty to add this item for all children
+              </p>
+            </div>
+          )}
 
           <Button 
             type="submit" 
