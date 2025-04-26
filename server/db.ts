@@ -45,6 +45,7 @@ export const appSettings = pgTable("app_settings", {
   selectedModel: text("selected_model").default("gemini-2.5-flash"),
   encryptedApiKey: text("encrypted_api_key"),
   apiKeyTimestamp: integer("api_key_timestamp"),
+  darkMode: boolean("dark_mode").default(false),
   user_id: text("user_id").notNull(),
 });
 

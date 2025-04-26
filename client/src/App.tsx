@@ -4,8 +4,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { queryClient } from "./lib/queryClient";
 import { Home, NotFound } from "@/pages";
-import { useEffect } from "react";
-import { getAppSettings } from "./lib/localStorage";
+import { useEffect, useState } from "react";
+import { getAppSettings } from "./lib/storage";
 
 function Router() {
   return (
@@ -17,14 +17,26 @@ function Router() {
 }
 
 function App() {
+  const [isLoading, setIsLoading] = useState(true);
+
   useEffect(() => {
     // Initialize dark mode if enabled in settings
-    const settings = getAppSettings();
-    if (settings.darkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
+    const initializeApp = async () => {
+      try {
+        const settings = await getAppSettings();
+        if (settings.darkMode) {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      } catch (error) {
+        console.error('Error initializing app settings:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    initializeApp();
   }, []);
 
   return (

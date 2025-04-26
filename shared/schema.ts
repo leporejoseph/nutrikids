@@ -59,6 +59,7 @@ export const appSettingsSchema = z.object({
   selectedModel: z.string().optional().default("gemini-2.5-flash"),
   encryptedApiKey: z.string().optional(),
   apiKeyTimestamp: z.number().optional(),
+  darkMode: z.boolean().optional().default(false),
   user_id: z.string().optional(), // Added for Supabase integration
 });
 
