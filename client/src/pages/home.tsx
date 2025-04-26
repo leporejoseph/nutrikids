@@ -240,71 +240,13 @@ export default function Home() {
                 </div>
               </div>
               
-              {filteredItems.length > 0 ? (
-                <FoodItemList 
-                  items={filteredItems} 
-                  onDelete={handleDeleteFood} 
-                  onUpdate={handleUpdateFood} 
-                />
-              ) : (
-                <p className="text-gray-500 text-center py-4 bg-gray-50 rounded-lg border border-gray-200">No items added for this date.</p>
-              )}
-            </div>
-            
-            {/* Consolidated Entry Form - MOVED DOWN */}
-            <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6">
-              <h3 className="font-inter font-semibold text-lg mb-4">Add New Item</h3>
-              
-              {/* Type Selection Buttons */}
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Type
-                </label>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    className={`flex-1 py-2 px-3 rounded-md flex items-center justify-center gap-2 transition-colors ${
-                      entryType === "food" 
-                        ? "bg-green-100 border border-green-300 text-green-700" 
-                        : "bg-gray-50 border border-gray-200 text-gray-700 hover:bg-gray-100"
-                    }`}
-                    onClick={() => setEntryType("food")}
-                  >
-                    <Apple className="h-4 w-4" />
-                    <span>Food</span>
-                  </button>
-                  <button
-                    type="button"
-                    className={`flex-1 py-2 px-3 rounded-md flex items-center justify-center gap-2 transition-colors ${
-                      entryType === "drink" 
-                        ? "bg-purple-100 border border-purple-300 text-purple-700" 
-                        : "bg-gray-50 border border-gray-200 text-gray-700 hover:bg-gray-100"
-                    }`}
-                    onClick={() => setEntryType("drink")}
-                  >
-                    <Coffee className="h-4 w-4" />
-                    <span>Drink</span>
-                  </button>
-                  <button
-                    type="button"
-                    className={`flex-1 py-2 px-3 rounded-md flex items-center justify-center gap-2 transition-colors ${
-                      entryType === "supplement" 
-                        ? "bg-blue-100 border border-blue-300 text-blue-700" 
-                        : "bg-gray-50 border border-gray-200 text-gray-700 hover:bg-gray-100"
-                    }`}
-                    onClick={() => setEntryType("supplement")}
-                  >
-                    <Pill className="h-4 w-4" />
-                    <span>Supplement</span>
-                  </button>
-                </div>
-              </div>
-              
-              {entryType === "supplement" ? (
-                <SupplementEntryForm onAddSupplement={(supplement) => handleAddFood({...supplement, type: "supplement"})} selectedDate={selectedDate} />
-              ) : (
-                <FoodEntryForm onAddFood={(food) => handleAddFood({...food, type: entryType})} selectedDate={selectedDate} />
-              )}
+              <FoodItemList 
+                items={filteredItems} 
+                onDelete={handleDeleteFood} 
+                onUpdate={handleUpdateFood}
+                onAddFood={handleAddFood}
+                selectedDate={selectedDate}
+              />
             </div>
 
             {filteredItems.length > 0 && (
