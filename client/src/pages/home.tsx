@@ -11,7 +11,7 @@ import NutritionReportView from "@/components/report/report-view";
 import { APP_IMAGES } from "@/lib/constants";
 import { getFoodItems, saveFoodItems, getAppSettings, getChildInfo, saveNutritionReport, getNutritionReport, getFoodPlans, saveFoodPlan } from "@/lib/localStorage";
 import { Button } from "@/components/ui/button";
-import { ChartPie, Apple, Pill, BookmarkPlus, Save, BookmarkCheck, Star, Coffee } from "lucide-react";
+import { ChartPie, Apple, Pill, BookmarkPlus, Save, BookmarkCheck, Star, Coffee, Upload } from "lucide-react";
 import { generateNutritionReport } from "@/lib/ai";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -234,7 +234,7 @@ export default function Home() {
                       className="p-1.5 text-green-600 hover:bg-green-50 rounded-full transition-colors"
                       title="Load saved meal plan"
                     >
-                      <Save className="h-4 w-4" />
+                      <Upload className="h-4 w-4" />
                     </button>
                   )}
                 </div>
