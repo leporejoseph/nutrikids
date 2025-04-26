@@ -62,19 +62,23 @@ export default function NutritionReportView({ report, isLoading, onBack, error }
         ) : (
           <p className="text-lg">No report data available.</p>
         )}
-        <button
-          onClick={onBack}
-          className="mt-4 inline-flex items-center px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" /> Back to Food Entry
-        </button>
+        
+        {/* Only show back button if explicitly needed and no parent handles it */}
+        {onBack && typeof onBack === 'function' && onBack.toString() !== '() => {}' && (
+          <button
+            onClick={onBack}
+            className="mt-4 inline-flex items-center px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" /> Back to Food Entry
+          </button>
+        )}
       </div>
     );
   }
 
   return (
     <div className="animate-in fade-in">
-      {/* Only show header and back button in main report view, not in tabs */}
+      {/* Only show header and back button if no parent handles it and this is the main report view */}
       {onBack && typeof onBack === 'function' && onBack.toString() !== '() => {}' && (
         <div className="flex justify-between items-center mb-4">
           <button 
