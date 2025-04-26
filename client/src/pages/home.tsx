@@ -12,7 +12,7 @@ import ReportHistoryModal from "@/components/report/report-history-modal";
 import { APP_IMAGES } from "@/lib/constants";
 import { getFoodItems, saveFoodItems, getAppSettings, getChildInfo, saveNutritionReport, getNutritionReport, getFoodPlans, saveFoodPlan, deleteFoodPlan, getReportHistory } from "@/lib/storage";
 import { Button } from "@/components/ui/button";
-import { ChartPie, Apple, Pill, BookmarkPlus, Save, BookmarkCheck, Star, Coffee, Upload, Trash2, MinusCircle, History, FileText, Users } from "lucide-react";
+import { ChartPie, Apple, Pill, BookmarkPlus, Save, BookmarkCheck, Star, Coffee, Upload, Trash2, MinusCircle, History, FileText, Users, Bookmark } from "lucide-react";
 import { generateNutritionReport } from "@/lib/ai";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -191,15 +191,20 @@ export default function Home() {
       return;
     }
     
+    // Convert FoodItems to match FoodPlan items structure (with childId as string|null)
+    const itemsWithNullableChildId = filteredItems.map(item => {
+      const { childId, ...rest } = item;
+      return {
+        ...rest,
+        childId: childId || null
+      };
+    });
+    
     const newPlan: FoodPlan = {
       id: crypto.randomUUID(),
       name,
       description,
-      items: filteredItems.map(item => ({
-        ...item,
-        // Convert undefined to null for childId
-        childId: item.childId ?? null
-      })),
+      items: itemsWithNullableChildId,
       createdAt: Date.now(),
       isDefault,
       // Associate with the selected child if child-specific is selected
@@ -385,6 +390,28 @@ export default function Home() {
                 onUpdate={handleUpdateFood}
                 onAddFood={handleAddFood}
                 selectedDate={selectedDate}
+              />
+            </div>
+
+            {/* Add the FoodPlanManager component */}
+            <div className="mt-4 mb-6 border rounded-md p-4 bg-blue-50 border-blue-100">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-inter font-semibold text-lg flex items-center">
+                  <Bookmark className="mr-2 h-5 w-5 text-blue-600" /> Food Plans
+                </h3>
+                {childInfo?.selectedChildId && (
+                  <div className="text-sm text-blue-700 bg-blue-100 px-2 py-1 rounded-full flex items-center">
+                    <Users className="h-3 w-3 mr-1" />
+                    {childInfo.children?.find(c => c.id === childInfo.selectedChildId)?.name || 'Selected Child'}
+                  </div>
+                )}
+              </div>
+              
+              {/* FoodPlanManager component */}
+              <FoodPlanManager 
+                currentItems={filteredItems} 
+                onLoadPlan={handleLoadFoodPlan}
+                selectedChildId={selectedChildId}
               />
             </div>
 
