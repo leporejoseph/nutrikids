@@ -82,9 +82,23 @@ export const nutritionReportSchema = z.object({
   foodSuggestions: z.array(z.string()),
   supplementRecommendations: z.array(z.string()).optional().default([]),
   supplementCautions: z.array(z.string()).optional().default([]),
+  analysisDate: z.number().default(() => Date.now()),
+  reportDate: z.string().optional(), // The date for which the report was generated (YYYY-MM-DD)
+  id: z.string().optional(), // Unique ID for each report
 });
 
 export type NutritionReport = z.infer<typeof nutritionReportSchema>;
+
+// Schema for saved report history
+export const reportHistoryItemSchema = z.object({
+  id: z.string(),
+  reportDate: z.string(), // YYYY-MM-DD format
+  analysisDate: z.number(),
+  nutritionScore: z.number(),
+  report: nutritionReportSchema,
+});
+
+export type ReportHistoryItem = z.infer<typeof reportHistoryItemSchema>;
 
 // Food Plan / Favorites Schema
 export const foodPlanSchema = z.object({

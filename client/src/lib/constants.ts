@@ -87,6 +87,7 @@ export const STORAGE_KEYS = {
   APP_SETTINGS: "nutrikids-app-settings",
   NUTRITION_REPORT: "nutrikids-nutrition-report",
   FOOD_PLANS: "nutrikids-food-plans",
+  REPORT_HISTORY: "nutrikids-report-history",
 };
 
 // Default Values

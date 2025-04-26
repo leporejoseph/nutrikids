@@ -152,10 +152,16 @@ export async function generateNutritionReport({
 
 // Mock report function for testing - only used when test API keys are provided
 function getMockNutritionReport(foodItems: FoodItem[], childInfo: ChildInfo): NutritionReport {
+  // Get the current date in YYYY-MM-DD format for the report
+  const todayDate = new Date().toISOString().split('T')[0];
+  
   return {
+    id: crypto.randomUUID(),
     calories: 1200,
     caloriesTarget: 1800,
     nutritionScore: 65,
+    analysisDate: Date.now(),
+    reportDate: todayDate,
     macronutrients: [
       {
         name: "Protein",
