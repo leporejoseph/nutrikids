@@ -201,8 +201,8 @@ export default function Home() {
       }
 
       const newReport = await generateNutritionReport({
-        foodItems: filteredItems, // All items for the current date
-        historyItems: foodItems, // All historical items for trend analysis
+        foodItems: filteredItems, // Only items for the current date - these are used for the nutritional analysis
+        historyItems: foodItems,  // All historical items for context and recommendations
         childInfo,
         apiKey: settings.apiKey,
         model: settings.selectedModel,

@@ -333,7 +333,10 @@ function createAnalysisPrompt(foodItems: FoodItem[], childInfo: ChildInfo, histo
     : "None recorded";
 
   // Create historical food data as JSON
-  const historyJson = JSON.stringify(foodItemsByDate, null, 2);
+  // Format the history data in a more readable way for the AI
+  const historyJson = Object.keys(foodItemsByDate).length > 0 
+    ? JSON.stringify(foodItemsByDate, null, 2)
+    : "No historical data available from previous 5 days";
 
   const restrictionsText = childInfo.restrictions?.length > 0 && !childInfo.restrictions.includes("none")
     ? `The child has the following dietary restrictions: ${childInfo.restrictions.join(", ")}.`
@@ -370,15 +373,15 @@ HISTORICAL FOOD DATA BY DATE (PREVIOUS 5 DAYS):
 ${historyJson}
 
 ANALYSIS INSTRUCTIONS:
-1. Focus primarily on analyzing the CURRENT DAY's food intake for the nutrition values.
+1. IMPORTANT: The nutrition analysis (calories, macros, vitamins, minerals, nutrition score) is ONLY based on the CURRENT DAY's food intake.
 2. Determine the approximate caloric content and macronutrient breakdown (proteins, carbohydrates, fats, fiber) based on standard nutritional databases.
 3. Estimate the vitamin content (focusing on vitamins A, C, D, E, B vitamins).
 4. Estimate the mineral content (focusing on calcium, iron, zinc, potassium, sodium, magnesium).
 5. Compare the intake to age-appropriate recommended daily allowances for ${ageGroup}.
-6. Calculate a "nutrition score" as a percentage representing how well the diet meets the child's nutritional needs.
-7. IMPORTANT: Thoroughly review the historical data (previous 5 days) to identify patterns, trends, or recurring nutritional gaps.
-8. IMPORTANT: Your recommendations and tips should specifically reference patterns observed in the historical data.
-9. IMPORTANT: Provide personalized improvement recommendations based on BOTH current day's intake AND historical eating patterns.
+6. Calculate a "nutrition score" as a percentage representing how well the current day's diet meets the child's nutritional needs.
+7. While the nutrition analysis is for the current day only, use the historical data (previous 5 days) to inform your recommendations and tips.
+8. Thoroughly review the historical data to identify patterns, trends, or recurring nutritional gaps across the 5-day history.
+9. Your recommendations and tips should specifically reference patterns observed in the historical data.
 10. Suggest 4-5 specific foods that would complement the current intake to improve nutritional balance, considering historical preferences.
 11. Provide 2-3 specific supplement recommendations if appropriate based on consistent nutritional gaps observed over time.
 12. Include 2-3 cautions about supplement usage, potential interactions, or considerations.
