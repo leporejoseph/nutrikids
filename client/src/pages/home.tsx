@@ -912,7 +912,8 @@ export default function Home() {
                 </div>
                 <MultiChildReportTabs 
                   multiChildReport={multiChildReport} 
-                  childInfo={childInfo!} 
+                  childInfo={childInfo!}
+                  isLoading={isLoading}
                 />
               </div>
             ) : (

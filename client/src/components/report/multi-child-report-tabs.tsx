@@ -7,9 +7,10 @@ import { Badge } from "@/components/ui/badge";
 interface MultiChildReportTabsProps {
   multiChildReport: MultiChildReport;
   childInfo: ChildInfo;
+  isLoading?: boolean; // Add loading state prop
 }
 
-export default function MultiChildReportTabs({ multiChildReport, childInfo }: MultiChildReportTabsProps) {
+export default function MultiChildReportTabs({ multiChildReport, childInfo, isLoading = false }: MultiChildReportTabsProps) {
   const [activeTab, setActiveTab] = useState<string | null>(null);
   
   // Get all child reports from the multi-child report
@@ -53,7 +54,7 @@ export default function MultiChildReportTabs({ multiChildReport, childInfo }: Mu
         <TabsContent key={childId} value={childId}>
           <ReportView 
             report={childReports[childId]} 
-            isLoading={false} 
+            isLoading={isLoading} 
             onBack={() => {}} // This is handled by the parent component
           />
         </TabsContent>

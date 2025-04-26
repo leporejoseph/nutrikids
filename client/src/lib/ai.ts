@@ -51,30 +51,37 @@ export async function generateNutritionReport({
       
       // Create a safer way to access the API
       // We'll use fetch directly since the Google Generative AI SDK TypeScript support is problematic
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+      console.log(`Making API request to Gemini API with model: ${model}`);
+      
+      const requestBody = {
+        contents: [{
+          parts: [{
+            text: prompt
+          }]
+        }],
+        generationConfig: {
+          temperature: 0.2,
+          topK: 40,
+          topP: 0.95,
+          maxOutputTokens: 8192
+          // Removed responseFormat which was causing errors
+        }
+      };
+      
+      // Make the API request
+      const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          contents: [{
-            parts: [{
-              text: prompt
-            }]
-          }],
-          generationConfig: {
-            temperature: 0.2,
-            topK: 40,
-            topP: 0.95,
-            maxOutputTokens: 8192
-            // Removed responseFormat which was causing errors
-          }
-        })
+        body: JSON.stringify(requestBody)
       });
       
+      // Handle error responses
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        console.error("API Error:", errorData);
+        console.error(`API Error: ${response.status}`, errorData);
         
         if (response.status === 400) {
           throw new Error("Invalid request to Gemini API. Please check your API key and try again.");
@@ -87,10 +94,11 @@ export async function generateNutritionReport({
         } else if (response.status === 429) {
           throw new Error("Quota exceeded. Please try again later or check your API usage limits.");
         } else {
-          throw new Error(`API Error: ${response.status} - ${errorData.error?.message || "Unknown error"}`);
+          throw new Error(`Error from Gemini API: ${response.status} - ${errorData.error?.message || "Unknown error"}`);
         }
       }
       
+      // Process successful response
       const data = await response.json();
       
       if (!data.candidates || data.candidates.length === 0 || !data.candidates[0].content) {
