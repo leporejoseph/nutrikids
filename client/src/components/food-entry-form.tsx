@@ -124,50 +124,7 @@ export default function FoodEntryForm({ onAddFood, selectedDate }: FoodEntryForm
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
-      {/* Entry Type Selection */}
-      <div className="mb-4">
-        <div className="font-medium block mb-2">Entry Type</div>
-        <div className="flex gap-2">
-          <button
-            type="button"
-            className={`flex-1 py-2 px-3 rounded-md flex items-center justify-center gap-2 transition-colors ${
-              entryType === "food" 
-                ? "bg-green-100 border border-green-300 text-green-700" 
-                : "bg-gray-50 border border-gray-200 text-gray-700 hover:bg-gray-100"
-            }`}
-            onClick={() => setEntryType("food")}
-          >
-            <Apple className="h-4 w-4" />
-            <span>Food</span>
-          </button>
-          <button
-            type="button"
-            className={`flex-1 py-2 px-3 rounded-md flex items-center justify-center gap-2 transition-colors ${
-              entryType === "drink" 
-                ? "bg-purple-100 border border-purple-300 text-purple-700" 
-                : "bg-gray-50 border border-gray-200 text-gray-700 hover:bg-gray-100"
-            }`}
-            onClick={() => setEntryType("drink")}
-          >
-            <Coffee className="h-4 w-4" />
-            <span>Drink</span>
-          </button>
-          <button
-            type="button"
-            className={`flex-1 py-2 px-3 rounded-md flex items-center justify-center gap-2 transition-colors ${
-              entryType === "supplement" 
-                ? "bg-blue-100 border border-blue-300 text-blue-700" 
-                : "bg-gray-50 border border-gray-200 text-gray-700 hover:bg-gray-100"
-            }`}
-            onClick={() => setEntryType("supplement")}
-          >
-            <Pill className="h-4 w-4" />
-            <span>Supplement</span>
-          </button>
-        </div>
-      </div>
-
+    <div>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <FormField

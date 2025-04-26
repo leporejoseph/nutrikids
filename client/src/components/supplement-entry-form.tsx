@@ -73,8 +73,7 @@ export default function SupplementEntryForm({ onAddSupplement, selectedDate }: S
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
-      <h3 className="font-semibold text-lg text-primary mb-4">Add Supplement</h3>
+    <div>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <FormField
