@@ -33,6 +33,7 @@ export const foodItemSchema = z.object({
   }).optional(),
   createdAt: z.number(),
   date: z.string().default(() => new Date().toISOString().split('T')[0]), // Store as YYYY-MM-DD
+  user_id: z.string().optional(), // Added for Supabase integration
 });
 
 export type FoodItem = z.infer<typeof foodItemSchema>;
@@ -47,6 +48,7 @@ export const childInfoSchema = z.object({
   weightUnit: z.enum(["lb", "kg"]).default("lb"),
   heightUnit: z.enum(["in", "cm"]).default("in"),
   restrictions: z.array(z.string()),
+  user_id: z.string().optional(), // Added for Supabase integration
 });
 
 export type ChildInfo = z.infer<typeof childInfoSchema>;
@@ -57,6 +59,7 @@ export const appSettingsSchema = z.object({
   selectedModel: z.string().optional().default("gemini-2.5-flash"),
   encryptedApiKey: z.string().optional(),
   apiKeyTimestamp: z.number().optional(),
+  user_id: z.string().optional(), // Added for Supabase integration
 });
 
 export type AppSettings = z.infer<typeof appSettingsSchema>;
@@ -86,6 +89,7 @@ export const nutritionReportSchema = z.object({
   analysisDate: z.number().default(() => Date.now()),
   reportDate: z.string().optional(), // The date for which the report was generated (YYYY-MM-DD)
   id: z.string().optional(), // Unique ID for each report
+  user_id: z.string().optional(), // Added for Supabase integration
 });
 
 export type NutritionReport = z.infer<typeof nutritionReportSchema>;
@@ -97,6 +101,7 @@ export const reportHistoryItemSchema = z.object({
   analysisDate: z.number(),
   nutritionScore: z.number(),
   report: nutritionReportSchema,
+  user_id: z.string().optional(), // Added for Supabase integration
 });
 
 export type ReportHistoryItem = z.infer<typeof reportHistoryItemSchema>;
