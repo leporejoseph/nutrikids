@@ -38,16 +38,27 @@ export const foodItemSchema = z.object({
 
 export type FoodItem = z.infer<typeof foodItemSchema>;
 
-// Child Information Schema
-export const childInfoSchema = z.object({
+// Single Child Information Schema
+export const childSchema = z.object({
+  id: z.string().default(() => crypto.randomUUID()),
   name: z.string().optional(),
-  age: z.number().nullable(),
+  dateOfBirth: z.string().nullable(), // Store as YYYY-MM-DD
   gender: z.string(),
   weight: z.number().nullable(),
   height: z.number().nullable(),
   weightUnit: z.enum(["lb", "kg"]).default("lb"),
   heightUnit: z.enum(["in", "cm"]).default("in"),
   restrictions: z.array(z.string()),
+  isSelected: z.boolean().default(false), // Track which child is currently selected
+  createdAt: z.number().default(() => Date.now()),
+});
+
+export type Child = z.infer<typeof childSchema>;
+
+// Multiple Children Information Schema
+export const childInfoSchema = z.object({
+  children: z.array(childSchema).default([]),
+  selectedChildId: z.string().nullable().default(null),
   user_id: z.string().optional(), // Added for Supabase integration
 });
 
@@ -115,6 +126,7 @@ export const foodPlanSchema = z.object({
   items: z.array(foodItemSchema),
   isDefault: z.boolean().default(false),
   createdAt: z.number(),
+  childId: z.string().nullable().default(null), // Link to a specific child
   user_id: z.string().optional(), // Added for Supabase integration
 });
 

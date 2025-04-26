@@ -88,15 +88,23 @@ export const STORAGE_KEYS = {
 };
 
 // Default Values
-export const DEFAULT_CHILD_INFO = {
+export const DEFAULT_CHILD = {
+  id: crypto.randomUUID(),
   name: "",
-  age: null,
+  dateOfBirth: null,
   gender: "",
   weight: null,
   height: null,
   weightUnit: "lb" as const,
   heightUnit: "in" as const,
   restrictions: [],
+  isSelected: true,
+  createdAt: Date.now(),
+};
+
+export const DEFAULT_CHILD_INFO = {
+  children: [DEFAULT_CHILD],
+  selectedChildId: DEFAULT_CHILD.id,
 };
 
 export const DEFAULT_APP_SETTINGS = {
