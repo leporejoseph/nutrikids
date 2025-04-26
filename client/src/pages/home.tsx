@@ -11,7 +11,7 @@ import NutritionReportView from "@/components/report/report-view";
 import { APP_IMAGES } from "@/lib/constants";
 import { getFoodItems, saveFoodItems, getAppSettings, getChildInfo, saveNutritionReport, getNutritionReport, getFoodPlans, saveFoodPlan } from "@/lib/localStorage";
 import { Button } from "@/components/ui/button";
-import { ChartPie, Apple, Pill, BookmarkPlus, Save, BookmarkCheck, Star } from "lucide-react";
+import { ChartPie, Apple, Pill, BookmarkPlus, Save, BookmarkCheck, Star, Coffee } from "lucide-react";
 import { generateNutritionReport } from "@/lib/ai";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -21,7 +21,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 export default function Home() {
   const [foodItems, setFoodItems] = useState<FoodItem[]>([]);
   const [view, setView] = useState<"entry" | "report">("entry");
-  const [entryTab, setEntryTab] = useState<"food" | "supplement">("food");
+  const [entryType, setEntryType] = useState<"food" | "drink" | "supplement">("food");
   const [isLoading, setIsLoading] = useState(false);
   const [report, setReport] = useState<NutritionReport | null>(null);
   const [reportError, setReportError] = useState<string | null>(null);
@@ -56,20 +56,9 @@ export default function Home() {
     setReport(savedReport);
   }, []);
   
-  // Filter food items by selected date and type
-  const filteredFoodItems = useMemo(() => {
-    return foodItems.filter(item => 
-      item.date === selectedDate && 
-      (item.type === 'food' || !item.type)
-    );
-  }, [foodItems, selectedDate]);
-  
-  // Filter supplement items by selected date
-  const filteredSupplements = useMemo(() => {
-    return foodItems.filter(item => 
-      item.date === selectedDate && 
-      item.type === 'supplement'
-    );
+  // Filter items by selected date
+  const filteredItems = useMemo(() => {
+    return foodItems.filter(item => item.date === selectedDate);
   }, [foodItems, selectedDate]);
 
   const handleAddFood = (food: FoodItem) => {
@@ -113,12 +102,10 @@ export default function Home() {
   };
   
   const handleSaveFoodPlan = (name: string, description: string, isDefault: boolean) => {
-    const currentItems = [...filteredFoodItems, ...filteredSupplements];
-    
-    if (currentItems.length === 0) {
+    if (filteredItems.length === 0) {
       toast({
         title: "No items to save",
-        description: "Add at least one food or supplement item before saving a plan.",
+        description: "Add at least one food, drink, or supplement item before saving a plan.",
         variant: "destructive"
       });
       return;
@@ -128,7 +115,7 @@ export default function Home() {
       id: crypto.randomUUID(),
       name,
       description,
-      items: currentItems,
+      items: filteredItems,
       createdAt: Date.now(),
       isDefault
     };
@@ -140,7 +127,7 @@ export default function Home() {
     
     toast({
       title: "Plan saved",
-      description: `${newPlan.name} has been saved with ${currentItems.length} items.`,
+      description: `${newPlan.name} has been saved with ${filteredItems.length} items.`,
     });
     
     setIsCreateDialogOpen(false);
@@ -179,11 +166,8 @@ export default function Home() {
         return;
       }
 
-      // Combine food items and supplements for the current date for analysis
-      const allCurrentItems = [...filteredFoodItems, ...filteredSupplements];
-      
       const newReport = await generateNutritionReport({
-        foodItems: allCurrentItems, // Both food and supplements for the current date 
+        foodItems: filteredItems, // All items for the current date
         historyItems: foodItems, // All historical items for trend analysis
         childInfo,
         apiKey: settings.apiKey,
@@ -230,95 +214,69 @@ export default function Home() {
             {/* Date Selector */}
             <DateSelector selectedDate={selectedDate} onDateChange={setSelectedDate} />
             
-            {/* Tabs for Food and Supplements */}
-            <Tabs defaultValue="food" className="w-full mt-4" onValueChange={(val) => setEntryTab(val as "food" | "supplement")}>
-              <TabsList className="grid w-full grid-cols-2 mb-4">
-                <TabsTrigger value="food" className="flex items-center justify-center gap-2">
-                  <Apple className="h-4 w-4" /> Food
-                </TabsTrigger>
-                <TabsTrigger value="supplement" className="flex items-center justify-center gap-2">
-                  <Pill className="h-4 w-4" /> Supplements
-                </TabsTrigger>
-              </TabsList>
+            {/* Consolidated Entry Form */}
+            <div className="mt-4 bg-white rounded-lg border border-gray-200 p-4 mb-6">
+              <div className="mb-4">
+                <label htmlFor="entryType" className="block text-sm font-medium text-gray-700 mb-1">
+                  Type
+                </label>
+                <select
+                  id="entryType"
+                  className="w-full border border-gray-300 rounded-md p-2"
+                  value={entryType}
+                  onChange={(e) => setEntryType(e.target.value as "food" | "drink" | "supplement")}
+                >
+                  <option value="food">Food</option>
+                  <option value="drink">Drink</option>
+                  <option value="supplement">Supplement</option>
+                </select>
+              </div>
               
-              <TabsContent value="food" className="mt-0">
-                <FoodEntryForm onAddFood={handleAddFood} selectedDate={selectedDate} />
+              {entryType === "supplement" ? (
+                <SupplementEntryForm onAddSupplement={(supplement) => handleAddFood({...supplement, type: "supplement"})} selectedDate={selectedDate} />
+              ) : (
+                <FoodEntryForm onAddFood={(food) => handleAddFood({...food, type: entryType})} selectedDate={selectedDate} />
+              )}
+            </div>
 
-                <div id="foodListContainer" className="mb-6">
-                  <div className="flex justify-between items-center mb-2">
-                    <h3 className="font-inter font-semibold text-lg">Food & Drinks</h3>
-                    <div className="flex space-x-2">
-                      <button 
-                        onClick={() => setIsCreateDialogOpen(true)}
-                        className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
-                        title="Save current items as a plan"
-                      >
-                        <BookmarkPlus className="h-4 w-4" />
-                      </button>
-                      {plans.length > 0 && (
-                        <button 
-                          onClick={() => setIsLoadDialogOpen(true)}
-                          className="p-1.5 text-green-600 hover:bg-green-50 rounded-full transition-colors"
-                          title="Load saved meal plan"
-                        >
-                          <Save className="h-4 w-4" />
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                  
-                  {filteredFoodItems.length > 0 ? (
-                    <FoodItemList 
-                      items={filteredFoodItems} 
-                      onDelete={handleDeleteFood} 
-                      onUpdate={handleUpdateFood} 
-                    />
-                  ) : (
-                    <p className="text-gray-500 text-center py-6">No food items added for this date.</p>
+            {/* Consolidated Item List */}
+            <div id="itemsListContainer" className="mb-6">
+              <div className="flex justify-between items-center mb-2">
+                <h3 className="font-inter font-semibold text-lg">Items</h3>
+                <div className="flex space-x-2">
+                  {filteredItems.length > 0 && (
+                    <button 
+                      onClick={() => setIsCreateDialogOpen(true)}
+                      className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
+                      title="Save current items as a plan"
+                    >
+                      <BookmarkPlus className="h-4 w-4" />
+                    </button>
+                  )}
+                  {plans.length > 0 && (
+                    <button 
+                      onClick={() => setIsLoadDialogOpen(true)}
+                      className="p-1.5 text-green-600 hover:bg-green-50 rounded-full transition-colors"
+                      title="Load saved meal plan"
+                    >
+                      <Save className="h-4 w-4" />
+                    </button>
                   )}
                 </div>
-              </TabsContent>
+              </div>
               
-              <TabsContent value="supplement" className="mt-0">
-                <SupplementEntryForm onAddSupplement={handleAddFood} selectedDate={selectedDate} />
+              {filteredItems.length > 0 ? (
+                <FoodItemList 
+                  items={filteredItems} 
+                  onDelete={handleDeleteFood} 
+                  onUpdate={handleUpdateFood} 
+                />
+              ) : (
+                <p className="text-gray-500 text-center py-6">No items added for this date.</p>
+              )}
+            </div>
 
-                <div id="supplementListContainer" className="mb-6">
-                  <div className="flex justify-between items-center mb-2">
-                    <h3 className="font-inter font-semibold text-lg">Supplements</h3>
-                    <div className="flex space-x-2">
-                      <button 
-                        onClick={() => setIsCreateDialogOpen(true)}
-                        className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
-                        title="Save current items as a plan"
-                      >
-                        <BookmarkPlus className="h-4 w-4" />
-                      </button>
-                      {plans.length > 0 && (
-                        <button 
-                          onClick={() => setIsLoadDialogOpen(true)}
-                          className="p-1.5 text-green-600 hover:bg-green-50 rounded-full transition-colors"
-                          title="Load saved meal plan"
-                        >
-                          <Save className="h-4 w-4" />
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                  
-                  {filteredSupplements.length > 0 ? (
-                    <FoodItemList 
-                      items={filteredSupplements} 
-                      onDelete={handleDeleteFood} 
-                      onUpdate={handleUpdateFood} 
-                    />
-                  ) : (
-                    <p className="text-gray-500 text-center py-6">No supplements added for this date.</p>
-                  )}
-                </div>
-              </TabsContent>
-            </Tabs>
-
-            {(filteredFoodItems.length > 0 || filteredSupplements.length > 0) && (
+            {filteredItems.length > 0 && (
               <div id="generateReportBtnContainer" className="mt-6">
                 <Button 
                   onClick={handleGenerateReport}
@@ -387,21 +345,21 @@ export default function Home() {
                     </div>
                     
                     <div className="pt-2">
-                      <h3 className="font-medium text-md mb-2">Items in this plan ({filteredFoodItems.length + filteredSupplements.length})</h3>
+                      <h3 className="font-medium text-md mb-2">Items in this plan ({filteredItems.length})</h3>
                       <div className="max-h-[200px] overflow-y-auto space-y-2 text-sm border border-gray-100 rounded-md p-2 bg-gray-50">
-                        {filteredFoodItems.map(item => (
+                        {filteredItems.map(item => (
                           <div key={item.id} className="flex items-center gap-2">
-                            <Apple className="h-3 w-3 text-green-500" />
+                            {item.type === "supplement" ? (
+                              <Pill className="h-3 w-3 text-blue-500" />
+                            ) : item.type === "drink" ? (
+                              <Coffee className="h-3 w-3 text-purple-500" />
+                            ) : (
+                              <Apple className="h-3 w-3 text-green-500" />
+                            )}
                             <span>{item.name} ({item.quantity} {item.unit})</span>
                           </div>
                         ))}
-                        {filteredSupplements.map(item => (
-                          <div key={item.id} className="flex items-center gap-2">
-                            <Pill className="h-3 w-3 text-blue-500" />
-                            <span>{item.name} ({item.quantity} {item.unit})</span>
-                          </div>
-                        ))}
-                        {filteredFoodItems.length + filteredSupplements.length === 0 && (
+                        {filteredItems.length === 0 && (
                           <p className="text-gray-500 italic">No items to save</p>
                         )}
                       </div>
@@ -419,7 +377,7 @@ export default function Home() {
                       <Button 
                         type="submit" 
                         className="bg-blue-600 text-white"
-                        disabled={filteredFoodItems.length + filteredSupplements.length === 0}
+                        disabled={filteredItems.length === 0}
                       >
                         <BookmarkPlus className="mr-2 h-4 w-4" />
                         Save Plan
