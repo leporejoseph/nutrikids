@@ -35,6 +35,8 @@ export const childInfoSchema = z.object({
   gender: z.string(),
   weight: z.number().nullable(),
   height: z.number().nullable(),
+  weightUnit: z.enum(["lb", "kg"]).default("lb"),
+  heightUnit: z.enum(["in", "cm"]).default("in"),
   restrictions: z.array(z.string()),
 });
 

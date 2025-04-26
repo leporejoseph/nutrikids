@@ -271,6 +271,16 @@ function createAnalysisPrompt(foodItems: FoodItem[], childInfo: ChildInfo): stri
   const restrictionsText = childInfo.restrictions?.length > 0 && !childInfo.restrictions.includes("none")
     ? `The child has the following dietary restrictions: ${childInfo.restrictions.join(", ")}.`
     : "The child has no specific dietary restrictions.";
+    
+  // Format weight with appropriate unit
+  const weightText = childInfo.weight !== null 
+    ? `Weight: ${childInfo.weight} ${childInfo.weightUnit || 'lb'}${childInfo.weightUnit === 'lb' ? ' (convert to kg for analysis)' : ''}`
+    : "Weight: Not provided";
+    
+  // Format height with appropriate unit
+  const heightText = childInfo.height !== null
+    ? `Height: ${childInfo.height} ${childInfo.heightUnit || 'in'}${childInfo.heightUnit === 'in' ? ' (convert to cm for analysis)' : ''}`
+    : "Height: Not provided";
 
   const prompt = `
 You are a pediatric nutritionist with expertise in child nutrition. Your task is to analyze the following food intake for a child and provide a comprehensive nutritional analysis.
@@ -278,8 +288,8 @@ You are a pediatric nutritionist with expertise in child nutrition. Your task is
 CHILD INFORMATION:
 ${childInfo.age !== null ? `Age: ${childInfo.age} years` : "Age: Not provided"}
 ${childInfo.gender ? `Gender: ${childInfo.gender}` : "Gender: Not provided"}
-${childInfo.weight !== null ? `Weight: ${childInfo.weight} kg` : "Weight: Not provided"}
-${childInfo.height !== null ? `Height: ${childInfo.height} cm` : "Height: Not provided"}
+${weightText}
+${heightText}
 ${restrictionsText}
 
 FOOD INTAKE:

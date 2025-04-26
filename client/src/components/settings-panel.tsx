@@ -318,19 +318,43 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                     />
                   </div>
                   
-                  <div className="grid grid-cols-2 gap-4 mt-4">
+                  {/* Weight with unit selection */}
+                  <div className="mt-4 space-y-3">
+                    <FormField
+                      control={childInfoForm.control}
+                      name="weightUnit"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="font-medium">Weight Unit</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-accent focus:border-accent">
+                                <SelectValue placeholder="Select unit" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="lb">Pounds (lb)</SelectItem>
+                              <SelectItem value="kg">Kilograms (kg)</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </FormItem>
+                      )}
+                    />
+
                     <FormField
                       control={childInfoForm.control}
                       name="weight"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="font-medium">Weight (kg)</FormLabel>
+                          <FormLabel className="font-medium">
+                            Weight {childInfoForm.watch('weightUnit') === 'kg' ? '(kg)' : '(lb)'}
+                          </FormLabel>
                           <FormControl>
                             <Input 
                               type="number" 
                               min="1" 
                               step="0.1" 
-                              placeholder="Weight"
+                              placeholder={`Weight in ${childInfoForm.watch('weightUnit') === 'kg' ? 'kilograms' : 'pounds'}`}
                               className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-accent focus:border-accent"
                               value={field.value === null ? '' : field.value.toString()}
                               onChange={(e) => {
@@ -342,18 +366,44 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                         </FormItem>
                       )}
                     />
+                  </div>
+                  
+                  {/* Height with unit selection */}
+                  <div className="mt-4 space-y-3">
+                    <FormField
+                      control={childInfoForm.control}
+                      name="heightUnit"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="font-medium">Height Unit</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-accent focus:border-accent">
+                                <SelectValue placeholder="Select unit" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="in">Inches (in)</SelectItem>
+                              <SelectItem value="cm">Centimeters (cm)</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </FormItem>
+                      )}
+                    />
                     
                     <FormField
                       control={childInfoForm.control}
                       name="height"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="font-medium">Height (cm)</FormLabel>
+                          <FormLabel className="font-medium">
+                            Height {childInfoForm.watch('heightUnit') === 'cm' ? '(cm)' : '(in)'}
+                          </FormLabel>
                           <FormControl>
                             <Input 
                               type="number" 
-                              min="30" 
-                              placeholder="Height"
+                              min={childInfoForm.watch('heightUnit') === 'cm' ? "30" : "12"}
+                              placeholder={`Height in ${childInfoForm.watch('heightUnit') === 'cm' ? 'centimeters' : 'inches'}`}
                               className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-accent focus:border-accent"
                               value={field.value === null ? '' : field.value.toString()}
                               onChange={(e) => {

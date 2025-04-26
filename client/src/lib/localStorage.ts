@@ -52,7 +52,22 @@ export function clearFoodItems(): void {
 export function getChildInfo(): ChildInfo {
   try {
     const info = localStorage.getItem(STORAGE_KEYS.CHILD_INFO);
-    return info ? JSON.parse(info) : DEFAULT_CHILD_INFO;
+    
+    if (info) {
+      const parsedInfo = JSON.parse(info);
+      
+      // Handle migration of data from older versions that don't have units
+      if (!parsedInfo.weightUnit) {
+        parsedInfo.weightUnit = DEFAULT_CHILD_INFO.weightUnit;
+      }
+      if (!parsedInfo.heightUnit) {
+        parsedInfo.heightUnit = DEFAULT_CHILD_INFO.heightUnit;
+      }
+      
+      return parsedInfo as ChildInfo;
+    }
+    
+    return DEFAULT_CHILD_INFO;
   } catch (error) {
     console.error("Error retrieving child info from localStorage:", error);
     return DEFAULT_CHILD_INFO;

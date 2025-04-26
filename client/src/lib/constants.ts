@@ -51,6 +51,8 @@ export const DEFAULT_CHILD_INFO = {
   gender: "",
   weight: null,
   height: null,
+  weightUnit: "lb" as const,
+  heightUnit: "in" as const,
   restrictions: [],
 };
 
