@@ -65,7 +65,8 @@ export default function FoodItemList({ items, onDelete, onUpdate, onAddFood, sel
   const [isAddingItem, setIsAddingItem] = useState(false);
   const [entryType, setEntryType] = useState<"food" | "drink" | "supplement">("food");
   const [childInfo, setChildInfo] = useState<ChildInfo | null>(null);
-  const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
+  const [selectedChildIds, setSelectedChildIds] = useState<string[]>([]);
+  const [isChildDropdownOpen, setIsChildDropdownOpen] = useState(false);
   
   // Load child information
   useEffect(() => {
@@ -73,7 +74,10 @@ export default function FoodItemList({ items, onDelete, onUpdate, onAddFood, sel
       try {
         const info = await getChildInfo();
         setChildInfo(info);
-        setSelectedChildId(info.selectedChildId || null);
+        // Initialize with the default selected child if there is one
+        if (info.selectedChildId) {
+          setSelectedChildIds([info.selectedChildId]);
+        }
       } catch (error) {
         console.error("Error loading child info:", error);
       }
@@ -115,8 +119,14 @@ export default function FoodItemList({ items, onDelete, onUpdate, onAddFood, sel
 
   const handleEdit = (item: FoodItem) => {
     setEditingId(item.id);
-    // Set selected child ID based on item, use 'none' if undefined/null
-    setSelectedChildId(item.childId || null);
+    // Set selected child IDs based on item
+    if (item.childIds?.length) {
+      setSelectedChildIds(item.childIds);
+    } else if (item.childId) {
+      setSelectedChildIds([item.childId]);
+    } else {
+      setSelectedChildIds([]);
+    }
     
     form.reset({
       name: item.name,
@@ -128,10 +138,12 @@ export default function FoodItemList({ items, onDelete, onUpdate, onAddFood, sel
 
   const handleSave = (id: string) => {
     const values = form.getValues();
-    // Include the childId in the update
+    // Include the childIds in the update
     onUpdate(id, {
       ...values,
-      childId: selectedChildId || undefined
+      childIds: selectedChildIds.length > 0 ? selectedChildIds : undefined,
+      // For backward compatibility
+      childId: selectedChildIds.length === 1 ? selectedChildIds[0] : undefined
     });
     setEditingId(null);
   };
@@ -187,7 +199,9 @@ export default function FoodItemList({ items, onDelete, onUpdate, onAddFood, sel
         type: entryType,
         createdAt: Date.now(),
         date: currentDate,
-        childId: selectedChildId || undefined, // Include the childId
+        childIds: selectedChildIds.length > 0 ? selectedChildIds : undefined,
+        // For backward compatibility
+        childId: selectedChildIds.length === 1 ? selectedChildIds[0] : undefined,
       } as FoodItem;
       
       onAddFood(newItem);
@@ -337,30 +351,99 @@ export default function FoodItemList({ items, onDelete, onUpdate, onAddFood, sel
             )}
           />
           
-          {/* Child selector in quick add form */}
+          {/* Child multi-selector in quick add form */}
           {childInfo?.children && childInfo.children.length > 0 && (
             <div className="mb-3">
               <FormLabel className="font-medium flex items-center">
                 <Users className="mr-2 h-4 w-4" /> Child Association
               </FormLabel>
-              <Select 
-                value={selectedChildId || "none"} 
-                onValueChange={(value) => setSelectedChildId(value === "none" ? null : value)}
+              
+              <div 
+                className="p-3 border border-gray-300 rounded-md cursor-pointer flex items-center justify-between"
+                onClick={() => setIsChildDropdownOpen(!isChildDropdownOpen)}
               >
-                <SelectTrigger className="p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-accent focus:border-accent">
-                  <SelectValue placeholder="Select child or leave empty for all" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">All Children (No specific child)</SelectItem>
-                  {childInfo.children.map(child => (
-                    <SelectItem key={child.id} value={child.id}>
-                      {child.name || `Child ${childInfo.children.findIndex(c => c.id === child.id) + 1}`}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                <div className="flex-1 truncate">
+                  {selectedChildIds.length === 0 ? (
+                    <span className="text-gray-500">Select children or leave empty for all</span>
+                  ) : (
+                    <div className="flex flex-wrap gap-1">
+                      {selectedChildIds.map(id => {
+                        const child = childInfo.children.find(c => c.id === id);
+                        const childName = child?.name || `Child ${childInfo.children.findIndex(c => c.id === id) + 1}`;
+                        return (
+                          <span key={id} className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary">
+                            {childName}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+                <ChevronDown className={`h-4 w-4 transition-transform ${isChildDropdownOpen ? 'rotate-180' : ''}`} />
+              </div>
+              
+              {/* Dropdown menu */}
+              {isChildDropdownOpen && (
+                <div className="mt-1 p-2 bg-white border border-gray-200 rounded-md shadow-md z-10">
+                  <div className="mb-2 px-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium">Select Children</span>
+                      <button 
+                        type="button" 
+                        className="text-xs text-primary hover:underline"
+                        onClick={() => {
+                          // Toggle all: if all selected, clear. Otherwise, select all
+                          if (selectedChildIds.length === childInfo.children.length) {
+                            setSelectedChildIds([]);
+                          } else {
+                            setSelectedChildIds(childInfo.children.map(c => c.id));
+                          }
+                        }}
+                      >
+                        {selectedChildIds.length === childInfo.children.length ? 'Clear All' : 'Select All'}
+                      </button>
+                    </div>
+                  </div>
+                  
+                  {/* Child list */}
+                  <div className="max-h-40 overflow-y-auto">
+                    {childInfo.children.map(child => {
+                      const isSelected = selectedChildIds.includes(child.id);
+                      return (
+                        <div 
+                          key={child.id}
+                          className={`px-2 py-1.5 flex items-center space-x-2 cursor-pointer hover:bg-gray-100 rounded-sm ${isSelected ? 'bg-gray-50' : ''}`}
+                          onClick={() => {
+                            if (isSelected) {
+                              setSelectedChildIds(selectedChildIds.filter(id => id !== child.id));
+                            } else {
+                              setSelectedChildIds([...selectedChildIds, child.id]);
+                            }
+                          }}
+                        >
+                          <div className={`w-4 h-4 border rounded flex items-center justify-center ${isSelected ? 'bg-primary border-primary' : 'border-gray-300'}`}>
+                            {isSelected && <Check className="h-3 w-3 text-white" />}
+                          </div>
+                          <span className="flex-1">{child.name || `Child ${childInfo.children.findIndex(c => c.id === child.id) + 1}`}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  
+                  <div className="mt-2 flex justify-end">
+                    <button
+                      type="button"
+                      className="px-3 py-1 text-xs bg-primary text-white rounded hover:bg-primary/90"
+                      onClick={() => setIsChildDropdownOpen(false)}
+                    >
+                      Done
+                    </button>
+                  </div>
+                </div>
+              )}
+              
               <p className="text-xs text-gray-500 mt-1">
-                Select a specific child or leave empty to add this item for all children
+                Select one or more children or leave empty to add this item for all children
               </p>
             </div>
           )}
