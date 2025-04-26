@@ -92,6 +92,7 @@ export const STORAGE_KEYS = {
 
 // Default Values
 export const DEFAULT_CHILD_INFO = {
+  name: "",
   age: null,
   gender: "",
   weight: null,

@@ -269,6 +269,26 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
               <h3 className="font-semibold text-lg mb-3">Child Information</h3>
               <div className="space-y-4">
                 <Form {...childInfoForm}>
+                  {/* Child's Name */}
+                  <div className="mb-4">
+                    <FormField
+                      control={childInfoForm.control}
+                      name="name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="font-medium">Child's Name</FormLabel>
+                          <FormControl>
+                            <Input 
+                              placeholder="Enter child's name (optional)"
+                              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-accent focus:border-accent"
+                              {...field}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  
                   <div className="grid grid-cols-2 gap-4">
                     <FormField
                       control={childInfoForm.control}

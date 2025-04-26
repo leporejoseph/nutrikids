@@ -39,6 +39,7 @@ export type FoodItem = z.infer<typeof foodItemSchema>;
 
 // Child Information Schema
 export const childInfoSchema = z.object({
+  name: z.string().optional(),
   age: z.number().nullable(),
   gender: z.string(),
   weight: z.number().nullable(),
