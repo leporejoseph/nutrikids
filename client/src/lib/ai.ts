@@ -353,6 +353,7 @@ function createAnalysisPrompt(foodItems: FoodItem[], childInfo: ChildInfo, histo
 You are a pediatric nutritionist with expertise in child nutrition. Your task is to analyze the following food intake for a child and provide a comprehensive nutritional analysis.
 
 CHILD INFORMATION:
+${childInfo.name ? `Name: ${childInfo.name}` : ""}
 ${childInfo.age !== null ? `Age: ${childInfo.age} years` : "Age: Not provided"}
 ${childInfo.gender ? `Gender: ${childInfo.gender}` : "Gender: Not provided"}
 ${weightText}
@@ -463,16 +464,10 @@ export async function fetchAvailableGeminiModels(apiKey: string): Promise<Gemini
       throw new Error("API key is required to fetch available models");
     }
     
-    // These are the current available Gemini models as of April 2025
-    // We're listing the most recent ones first based on official documentation
+    // Only using Gemini 2.5 models as requested
     const currentModels: GeminiModel[] = [
       { id: "gemini-2.5-pro-preview-03-25", name: "Gemini 2.5 Pro Preview" },
-      { id: "gemini-2.5-flash-preview-04-17", name: "Gemini 2.5 Flash Preview" },
-      { id: "gemini-2.0-flash", name: "Gemini 2.0 Flash" },
-      { id: "gemini-2.0-flash-lite", name: "Gemini 2.0 Flash-Lite" },
-      { id: "gemini-1.5-pro", name: "Gemini 1.5 Pro" },
-      { id: "gemini-1.5-flash", name: "Gemini 1.5 Flash" },
-      { id: "gemini-1.5-flash-8b", name: "Gemini 1.5 Flash-8B" }
+      { id: "gemini-2.5-flash-preview-04-17", name: "Gemini 2.5 Flash Preview" }
     ];
     
     // Simulate a delay as if we're fetching from the API
@@ -482,10 +477,9 @@ export async function fetchAvailableGeminiModels(apiKey: string): Promise<Gemini
   } catch (error) {
     console.error("Error preparing model list:", error);
     
-    // Return a default list of recent Gemini models
+    // Even in error case, only return Gemini 2.5 models
     return [
-      { id: "gemini-1.0-pro", name: "Gemini 1.0 Pro" },
-      { id: "gemini-pro", name: "Gemini Pro" }
+      { id: "gemini-2.5-flash-preview-04-17", name: "Gemini 2.5 Flash Preview" }
     ];
   }
 }
