@@ -10,11 +10,12 @@ interface NutritionReportViewProps {
   report: NutritionReport | null;
   isLoading: boolean;
   onBack: () => void;
+  error?: string | null;
 }
 
-export default function NutritionReportView({ report, isLoading, onBack }: NutritionReportViewProps) {
+export default function NutritionReportView({ report, isLoading, onBack, error }: NutritionReportViewProps) {
   const [activeTab, setActiveTab] = useState("macronutrients");
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(error || null);
 
   const tabs = [
     { id: "macronutrients", label: "Macronutrients" },
@@ -23,14 +24,20 @@ export default function NutritionReportView({ report, isLoading, onBack }: Nutri
     { id: "recommendations", label: "Tips" },
   ];
 
-  // Get any error from URL params
+  // Update error message when prop changes or from URL params
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const error = urlParams.get('error');
+    // Update from error prop
     if (error) {
-      setErrorMessage(decodeURIComponent(error));
+      setErrorMessage(error);
+    } else {
+      // Check for error in URL params
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlError = urlParams.get('error');
+      if (urlError) {
+        setErrorMessage(decodeURIComponent(urlError));
+      }
     }
-  }, []);
+  }, [error]);
 
   if (!report && !isLoading) {
     return (
