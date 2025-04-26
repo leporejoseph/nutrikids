@@ -545,7 +545,7 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
           </form>
           
           {/* Floating Save Button */}
-          <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 shadow-md max-w-md mx-auto">
+          <div className="fixed bottom-0 left-0 right-0 p-4 bg-card border-t border-border shadow-md max-w-md mx-auto">
             <Button 
               type="button"
               onClick={handleSubmit}
