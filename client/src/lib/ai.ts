@@ -9,7 +9,8 @@ export interface GeminiModel {
 }
 
 interface GenerateReportParams {
-  foodItems: FoodItem[];
+  foodItems: FoodItem[];      // Current day's food items 
+  historyItems?: FoodItem[];  // All food items for historical analysis
   childInfo: ChildInfo;
   apiKey: string;
   model: string;
@@ -17,6 +18,7 @@ interface GenerateReportParams {
 
 export async function generateNutritionReport({
   foodItems,
+  historyItems,
   childInfo,
   apiKey,
   model,
@@ -44,7 +46,7 @@ export async function generateNutritionReport({
 
     try {
       // Create a detailed prompt
-      const prompt = createAnalysisPrompt(foodItems, childInfo);
+      const prompt = createAnalysisPrompt(foodItems, childInfo, historyItems);
       console.log("Using model:", model);
       
       // Create a safer way to access the API
@@ -64,8 +66,8 @@ export async function generateNutritionReport({
             temperature: 0.2,
             topK: 40,
             topP: 0.95,
-            maxOutputTokens: 8192,
-            responseFormat: { type: "JSON" }  // Request JSON specifically
+            maxOutputTokens: 8192
+            // Removed responseFormat which was causing errors
           }
         })
       });
@@ -260,13 +262,31 @@ function getMockNutritionReport(foodItems: FoodItem[], childInfo: ChildInfo): Nu
   };
 }
 
-function createAnalysisPrompt(foodItems: FoodItem[], childInfo: ChildInfo): string {
+function createAnalysisPrompt(foodItems: FoodItem[], childInfo: ChildInfo, historyItems?: FoodItem[]): string {
   // Age-specific recommendations
   const ageGroup = getAgeGroup(childInfo.age);
 
+  // Items to use for history analysis
+  const itemsForHistory = historyItems || foodItems;
+  
+  // Group food items by date
+  const foodItemsByDate = itemsForHistory.reduce((acc: {[key: string]: FoodItem[]}, item) => {
+    const date = item.date || new Date(item.createdAt).toISOString().split('T')[0];
+    if (!acc[date]) {
+      acc[date] = [];
+    }
+    acc[date].push(item);
+    return acc;
+  }, {});
+
+  // Create current day food items list
+  const selectedDate = foodItems[0]?.date || new Date().toISOString().split('T')[0];
   const foodItemsList = foodItems
     .map((item) => `${item.quantity} ${item.unit} of ${item.name} (${item.mealType})`)
     .join("\n");
+
+  // Create historical food data as JSON
+  const historyJson = JSON.stringify(foodItemsByDate, null, 2);
 
   const restrictionsText = childInfo.restrictions?.length > 0 && !childInfo.restrictions.includes("none")
     ? `The child has the following dietary restrictions: ${childInfo.restrictions.join(", ")}.`
@@ -292,17 +312,23 @@ ${weightText}
 ${heightText}
 ${restrictionsText}
 
-FOOD INTAKE:
+CURRENT DAY FOOD INTAKE (${selectedDate}):
 ${foodItemsList}
 
+HISTORICAL FOOD DATA BY DATE:
+${historyJson}
+
 ANALYSIS INSTRUCTIONS:
-1. Determine the approximate caloric content and macronutrient breakdown (proteins, carbohydrates, fats, fiber) based on standard nutritional databases.
-2. Estimate the vitamin content (focusing on vitamins A, C, D, E, B vitamins).
-3. Estimate the mineral content (focusing on calcium, iron, zinc, potassium, sodium, magnesium).
-4. Compare the intake to age-appropriate recommended daily allowances for ${ageGroup}.
-5. Calculate a "nutrition score" as a percentage representing how well the diet meets the child's nutritional needs.
-6. Provide specific improvement recommendations.
-7. Suggest 4-5 specific foods that would complement the current intake to improve nutritional balance.
+1. Focus primarily on analyzing the CURRENT DAY's food intake.
+2. Determine the approximate caloric content and macronutrient breakdown (proteins, carbohydrates, fats, fiber) based on standard nutritional databases.
+3. Estimate the vitamin content (focusing on vitamins A, C, D, E, B vitamins).
+4. Estimate the mineral content (focusing on calcium, iron, zinc, potassium, sodium, magnesium).
+5. Compare the intake to age-appropriate recommended daily allowances for ${ageGroup}.
+6. Calculate a "nutrition score" as a percentage representing how well the diet meets the child's nutritional needs.
+7. Review any historical data provided to identify patterns or nutritional gaps over time.
+8. Consider seasonal eating patterns or recurring food preferences if evident in the historical data.
+9. Provide specific improvement recommendations based on both current and historical intake.
+10. Suggest 4-5 specific foods that would complement the current intake to improve nutritional balance.
 
 IMPORTANT: Format your response as a valid JSON object using the schema below. Do not include any explanations, markdown formatting, or text outside the JSON object. The response must be directly parseable as JSON:
 
