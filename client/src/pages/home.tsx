@@ -214,35 +214,10 @@ export default function Home() {
             {/* Date Selector */}
             <DateSelector selectedDate={selectedDate} onDateChange={setSelectedDate} />
             
-            {/* Consolidated Entry Form */}
-            <div className="mt-4 bg-white rounded-lg border border-gray-200 p-4 mb-6">
-              <div className="mb-4">
-                <label htmlFor="entryType" className="block text-sm font-medium text-gray-700 mb-1">
-                  Type
-                </label>
-                <select
-                  id="entryType"
-                  className="w-full border border-gray-300 rounded-md p-2"
-                  value={entryType}
-                  onChange={(e) => setEntryType(e.target.value as "food" | "drink" | "supplement")}
-                >
-                  <option value="food">Food</option>
-                  <option value="drink">Drink</option>
-                  <option value="supplement">Supplement</option>
-                </select>
-              </div>
-              
-              {entryType === "supplement" ? (
-                <SupplementEntryForm onAddSupplement={(supplement) => handleAddFood({...supplement, type: "supplement"})} selectedDate={selectedDate} />
-              ) : (
-                <FoodEntryForm onAddFood={(food) => handleAddFood({...food, type: entryType})} selectedDate={selectedDate} />
-              )}
-            </div>
-
-            {/* Consolidated Item List */}
-            <div id="itemsListContainer" className="mb-6">
+            {/* Consolidated Item List - MOVED TO TOP */}
+            <div id="itemsListContainer" className="mt-4 mb-6">
               <div className="flex justify-between items-center mb-2">
-                <h3 className="font-inter font-semibold text-lg">Items</h3>
+                <h3 className="font-inter font-semibold text-lg">Added Items</h3>
                 <div className="flex space-x-2">
                   {filteredItems.length > 0 && (
                     <button 
@@ -272,7 +247,33 @@ export default function Home() {
                   onUpdate={handleUpdateFood} 
                 />
               ) : (
-                <p className="text-gray-500 text-center py-6">No items added for this date.</p>
+                <p className="text-gray-500 text-center py-4 bg-gray-50 rounded-lg border border-gray-200">No items added for this date.</p>
+              )}
+            </div>
+            
+            {/* Consolidated Entry Form - MOVED DOWN */}
+            <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6">
+              <h3 className="font-inter font-semibold text-lg mb-4">Add New Item</h3>
+              <div className="mb-4">
+                <label htmlFor="entryType" className="block text-sm font-medium text-gray-700 mb-1">
+                  Type
+                </label>
+                <select
+                  id="entryType"
+                  className="w-full border border-gray-300 rounded-md p-2"
+                  value={entryType}
+                  onChange={(e) => setEntryType(e.target.value as "food" | "drink" | "supplement")}
+                >
+                  <option value="food">Food</option>
+                  <option value="drink">Drink</option>
+                  <option value="supplement">Supplement</option>
+                </select>
+              </div>
+              
+              {entryType === "supplement" ? (
+                <SupplementEntryForm onAddSupplement={(supplement) => handleAddFood({...supplement, type: "supplement"})} selectedDate={selectedDate} />
+              ) : (
+                <FoodEntryForm onAddFood={(food) => handleAddFood({...food, type: entryType})} selectedDate={selectedDate} />
               )}
             </div>
 
