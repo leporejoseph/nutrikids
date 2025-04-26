@@ -1,4 +1,4 @@
-import { FoodItem, ChildInfo, AppSettings, NutritionReport, FoodPlan, ReportHistoryItem } from "@shared/schema";
+import { FoodItem, ChildInfo, AppSettings, NutritionReport, FoodPlan, ReportHistoryItem, MultiChildReport } from "@shared/schema";
 import { DEFAULT_APP_SETTINGS, DEFAULT_CHILD_INFO, STORAGE_KEYS } from "./constants";
 
 // Simple encryption function for API keys
@@ -57,11 +57,15 @@ export function getChildInfo(): ChildInfo {
       const parsedInfo = JSON.parse(info);
       
       // Handle migration of data from older versions that don't have units
-      if (!parsedInfo.weightUnit) {
-        parsedInfo.weightUnit = DEFAULT_CHILD_INFO.weightUnit;
-      }
-      if (!parsedInfo.heightUnit) {
-        parsedInfo.heightUnit = DEFAULT_CHILD_INFO.heightUnit;
+      if (parsedInfo.children?.length > 0) {
+        parsedInfo.children.forEach(child => {
+          if (!child.weightUnit) {
+            child.weightUnit = DEFAULT_CHILD.weightUnit;
+          }
+          if (!child.heightUnit) {
+            child.heightUnit = DEFAULT_CHILD.heightUnit;
+          }
+        });
       }
       
       return parsedInfo as ChildInfo;
@@ -318,5 +322,49 @@ export function getDefaultFoodPlan(): FoodPlan | null {
   } catch (error) {
     console.error("Error getting default food plan from localStorage:", error);
     return null;
+  }
+}
+
+// Multi-child report management
+export function getMultiChildReport(): MultiChildReport | null {
+  try {
+    const report = localStorage.getItem(STORAGE_KEYS.MULTI_CHILD_REPORT);
+    return report ? JSON.parse(report) : null;
+  } catch (error) {
+    console.error("Error retrieving multi-child report from localStorage:", error);
+    return null;
+  }
+}
+
+export function saveMultiChildReport(report: MultiChildReport): void {
+  try {
+    // Ensure the report has the required fields
+    if (!report.id) {
+      report.id = crypto.randomUUID();
+    }
+    if (!report.analysisDate) {
+      report.analysisDate = Date.now();
+    }
+    if (!report.reportDate) {
+      report.reportDate = new Date().toISOString().split('T')[0];
+    }
+    
+    // Save the multi-child report
+    localStorage.setItem(STORAGE_KEYS.MULTI_CHILD_REPORT, JSON.stringify(report));
+    
+    // Also save individual reports to history
+    Object.entries(report.childReports).forEach(([childId, childReport]) => {
+      saveReportToHistory(childReport);
+    });
+  } catch (error) {
+    console.error("Error saving multi-child report to localStorage:", error);
+  }
+}
+
+export function clearMultiChildReport(): void {
+  try {
+    localStorage.removeItem(STORAGE_KEYS.MULTI_CHILD_REPORT);
+  } catch (error) {
+    console.error("Error clearing multi-child report from localStorage:", error);
   }
 }

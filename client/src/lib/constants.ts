@@ -83,6 +83,7 @@ export const STORAGE_KEYS = {
   CHILD_INFO: "nutrikids-child-info",
   APP_SETTINGS: "nutrikids-app-settings",
   NUTRITION_REPORT: "nutrikids-nutrition-report",
+  MULTI_CHILD_REPORT: "nutrikids-multi-child-report",
   FOOD_PLANS: "nutrikids-food-plans",
   REPORT_HISTORY: "nutrikids-report-history",
 };
