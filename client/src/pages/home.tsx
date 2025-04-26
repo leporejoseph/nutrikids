@@ -155,6 +155,18 @@ export default function Home() {
     });
   };
 
+  // Handle loading a report from history
+  const handleSelectHistoryReport = (historicalReport: NutritionReport) => {
+    setReport(historicalReport);
+    setReportError(null);
+    setView("report");
+    
+    toast({
+      title: "Historical Report Loaded",
+      description: `Loaded report from ${historicalReport.reportDate || 'unknown date'}`,
+    });
+  };
+  
   const handleGenerateReport = async () => {
     // Reset any previous errors
     setReportError(null);
@@ -453,7 +465,24 @@ export default function Home() {
             error={reportError}
           />
         )}
+        {/* Report History Modal */}
+        <ReportHistoryModal
+          isOpen={isHistoryModalOpen}
+          onClose={() => setIsHistoryModalOpen(false)}
+          onSelectReport={handleSelectHistoryReport}
+        />
       </main>
+
+      {/* History button (fixed at bottom-right) */}
+      {getReportHistory().length > 0 && (
+        <button
+          onClick={() => setIsHistoryModalOpen(true)}
+          className="fixed bottom-4 right-4 bg-purple-700 text-white p-3 rounded-full shadow-lg hover:bg-purple-800 transition-colors"
+          title="View Report History"
+        >
+          <History className="h-5 w-5" />
+        </button>
+      )}
     </div>
   );
 }
