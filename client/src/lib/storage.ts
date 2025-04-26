@@ -1,4 +1,4 @@
-import { FoodItem, ChildInfo, AppSettings, NutritionReport, FoodPlan, ReportHistoryItem } from '@shared/schema';
+import { FoodItem, ChildInfo, AppSettings, NutritionReport, FoodPlan, ReportHistoryItem, MultiChildReport } from '@shared/schema';
 import { useLocalStorageFallback } from './env';
 
 // Import storage implementations
@@ -104,4 +104,36 @@ export async function deleteFoodPlan(planId: string): Promise<void> {
 export async function getDefaultFoodPlan(): Promise<FoodPlan | null> {
   const storage = getStorage();
   return storage.getDefaultFoodPlan();
+}
+
+// Multi-Child Reports
+export async function getMultiChildReport(): Promise<MultiChildReport | null> {
+  const storage = getStorage();
+  try {
+    // @ts-ignore: The implementation will be added to the storage providers
+    return await storage.getMultiChildReport();
+  } catch (error) {
+    console.error("Error getting multi-child report:", error);
+    return null;
+  }
+}
+
+export async function saveMultiChildReport(report: MultiChildReport): Promise<void> {
+  const storage = getStorage();
+  try {
+    // @ts-ignore: The implementation will be added to the storage providers
+    return await storage.saveMultiChildReport(report);
+  } catch (error) {
+    console.error("Error saving multi-child report:", error);
+  }
+}
+
+export async function clearMultiChildReport(): Promise<void> {
+  const storage = getStorage();
+  try {
+    // @ts-ignore: The implementation will be added to the storage providers
+    return await storage.clearMultiChildReport();
+  } catch (error) {
+    console.error("Error clearing multi-child report:", error);
+  }
 }

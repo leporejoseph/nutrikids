@@ -104,9 +104,22 @@ export const nutritionReportSchema = z.object({
   reportDate: z.string().optional(), // The date for which the report was generated (YYYY-MM-DD)
   id: z.string().optional(), // Unique ID for each report
   user_id: z.string().optional(), // Added for Supabase integration
+  childId: z.string().nullable().default(null), // Child this report is for
+  childName: z.string().optional(), // Name of the child this report is for
 });
 
 export type NutritionReport = z.infer<typeof nutritionReportSchema>;
+
+// Multi-child report collection schema
+export const multiChildReportSchema = z.object({
+  reportDate: z.string().optional(), // The date for which the report was generated (YYYY-MM-DD)
+  analysisDate: z.number().default(() => Date.now()),
+  id: z.string().default(() => crypto.randomUUID()),
+  childReports: z.record(z.string(), nutritionReportSchema), // Child ID to report mapping
+  user_id: z.string().optional(), // Added for Supabase integration
+});
+
+export type MultiChildReport = z.infer<typeof multiChildReportSchema>;
 
 // Schema for saved report history
 export const reportHistoryItemSchema = z.object({
