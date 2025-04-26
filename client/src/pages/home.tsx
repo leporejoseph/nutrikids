@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { format } from "date-fns";
-import { FoodItem, NutritionReport, FoodPlan, ReportHistoryItem, ChildInfo } from "@shared/schema";
+import { FoodItem, NutritionReport, FoodPlan, ReportHistoryItem, ChildInfo, MultiChildReport } from "@shared/schema";
 import Header from "@/components/header";
 import FoodEntryForm from "@/components/food-entry-form";
 import SupplementEntryForm from "@/components/supplement-entry-form";
@@ -9,8 +9,23 @@ import FoodPlanManager from "@/components/food-plan-manager";
 import DateSelector from "@/components/date-selector";
 import NutritionReportView from "@/components/report/report-view";
 import ReportHistoryModal from "@/components/report/report-history-modal";
+import MultiChildReportTabs from "@/components/report/multi-child-report-tabs";
 import { APP_IMAGES } from "@/lib/constants";
-import { getFoodItems, saveFoodItems, getAppSettings, getChildInfo, saveNutritionReport, getNutritionReport, getFoodPlans, saveFoodPlan, deleteFoodPlan, getReportHistory } from "@/lib/storage";
+import { 
+  getFoodItems, 
+  saveFoodItems, 
+  getAppSettings, 
+  getChildInfo, 
+  saveNutritionReport, 
+  getNutritionReport, 
+  getFoodPlans, 
+  saveFoodPlan, 
+  deleteFoodPlan, 
+  getReportHistory,
+  getMultiChildReport,
+  saveMultiChildReport,
+  clearMultiChildReport
+} from "@/lib/storage";
 import { Button } from "@/components/ui/button";
 import { ChartPie, Apple, Pill, BookmarkPlus, Save, BookmarkCheck, Star, Coffee, Upload, Trash2, MinusCircle, History, FileText, Users, Bookmark, Search } from "lucide-react";
 import { generateNutritionReport, generateMultiChildReport } from "@/lib/ai";
@@ -25,6 +40,7 @@ export default function Home() {
   const [entryType, setEntryType] = useState<"food" | "drink" | "supplement">("food");
   const [isLoading, setIsLoading] = useState(false);
   const [report, setReport] = useState<NutritionReport | null>(null);
+  const [multiChildReport, setMultiChildReport] = useState<MultiChildReport | null>(null);
   const [reportError, setReportError] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<string>(format(new Date(), 'yyyy-MM-dd'));
   const [plans, setPlans] = useState<FoodPlan[]>([]);
@@ -84,6 +100,10 @@ export default function Home() {
         // Load saved report (if any)
         const savedReport = await getNutritionReport();
         setReport(savedReport);
+        
+        // Load saved multi-child report (if any)
+        const savedMultiChildReport = await getMultiChildReport();
+        setMultiChildReport(savedMultiChildReport);
         
         // Load report history
         const history = await getReportHistory();
@@ -275,6 +295,94 @@ export default function Home() {
       title: "Historical Report Loaded",
       description: `Loaded report from ${historicalReport.reportDate || 'unknown date'}`,
     });
+  };
+  
+  // Generate a multi-child report for all children
+  const handleGenerateMultiChildReport = async () => {
+    // Reset any previous errors
+    setReportError(null);
+    
+    try {
+      setIsLoading(true);
+      setView("report");
+
+      // Get settings and child info with await to handle promises
+      const settings = await getAppSettings();
+      const childInfo = await getChildInfo();
+
+      if (!settings.apiKey) {
+        const errorMsg = "Google Gemini API key is required. Please add it in the settings.";
+        setReportError(errorMsg);
+        toast({
+          title: "API Key Missing",
+          description: errorMsg,
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      if (!settings.selectedModel) {
+        const errorMsg = "Please select an AI model in the settings.";
+        setReportError(errorMsg);
+        toast({
+          title: "Model Not Selected",
+          description: errorMsg,
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Check if we have multiple children to generate report for
+      if (!childInfo || !childInfo.children || childInfo.children.length <= 1) {
+        const errorMsg = "You need to add multiple children in settings to generate a multi-child report.";
+        setReportError(errorMsg);
+        toast({
+          title: "Not Enough Children",
+          description: errorMsg,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Get all food items for the selected date
+      const itemsForDate = foodItems.filter(item => item.date === selectedDate);
+      
+      const newMultiChildReport = await generateMultiChildReport({
+        foodItems: itemsForDate, // All items for the current date
+        historyItems: foodItems,  // All historical items for context and recommendations
+        childInfo,
+        apiKey: settings.apiKey,
+        model: settings.selectedModel,
+      });
+
+      // Successfully generated multi-child report
+      setMultiChildReport(newMultiChildReport);
+      await saveMultiChildReport(newMultiChildReport);
+      setReportError(null);
+      
+      toast({
+        title: "Multi-Child Report Generated",
+        description: `Created reports for ${Object.keys(newMultiChildReport.childReports).length} children`,
+      });
+      
+    } catch (error) {
+      console.error("Error generating multi-child report:", error);
+      const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
+      
+      // Set the error to be displayed in the report view
+      setReportError(errorMessage);
+      
+      toast({
+        title: "Error Generating Multi-Child Report",
+        description: errorMessage,
+        variant: "destructive",
+      });
+      
+      // Clear any previous report when there's an error
+      setMultiChildReport(null);
+    } finally {
+      setIsLoading(false);
+    }
   };
   
   const handleGenerateReport = async () => {

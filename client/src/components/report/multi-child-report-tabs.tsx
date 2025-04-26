@@ -51,7 +51,11 @@ export default function MultiChildReportTabs({ multiChildReport, childInfo }: Mu
       
       {childIds.map(childId => (
         <TabsContent key={childId} value={childId}>
-          <ReportView report={childReports[childId]} />
+          <ReportView 
+            report={childReports[childId]} 
+            isLoading={false} 
+            onBack={() => {}} // This is handled by the parent component
+          />
         </TabsContent>
       ))}
     </Tabs>
