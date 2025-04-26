@@ -21,6 +21,15 @@ export default function VitaminsTab({ vitamins }: VitaminsTabProps) {
     // Prepare data for the radar chart
     const labels = vitamins.map(vitamin => vitamin.name);
     const percentages = vitamins.map(vitamin => vitamin.percentOfDaily);
+    
+    // Dynamically calculate the maximum scale based on the highest percentage
+    const maxPercentage = Math.max(...percentages, 100);
+    const scaleMax = maxPercentage > 100 
+      ? Math.ceil(maxPercentage / 100) * 100 // Round up to the nearest 100
+      : 100;
+    
+    // Calculate an appropriate step size based on the maximum scale
+    const stepSize = scaleMax > 200 ? Math.ceil(scaleMax / 5 / 25) * 25 : 25;
 
     // Create the chart
     const ctx = chartRef.current.getContext('2d');
@@ -59,9 +68,9 @@ export default function VitaminsTab({ vitamins }: VitaminsTabProps) {
                 color: 'rgba(0, 0, 0, 0.1)'
               },
               suggestedMin: 0,
-              suggestedMax: 100,
+              suggestedMax: scaleMax,
               ticks: {
-                stepSize: 25,
+                stepSize: stepSize,
                 callback: function(value) {
                   return value + '%';
                 }

@@ -21,6 +21,12 @@ export default function MineralsTab({ minerals }: MineralsTabProps) {
     // Prepare data for the bar chart
     const labels = minerals.map(mineral => mineral.name);
     const percentages = minerals.map(mineral => mineral.percentOfDaily);
+    
+    // Dynamically calculate the maximum scale based on the highest percentage
+    const maxPercentage = Math.max(...percentages, 100);
+    const scaleMax = maxPercentage > 100 
+      ? Math.ceil(maxPercentage / 100) * 100 // Round up to the nearest 100
+      : 100;
 
     // Colors based on percentage for each bar
     const barColors = percentages.map(percentage => {
@@ -53,7 +59,7 @@ export default function MineralsTab({ minerals }: MineralsTabProps) {
           scales: {
             x: {
               beginAtZero: true,
-              max: 100,
+              max: scaleMax,
               title: {
                 display: true,
                 text: 'Percent of Daily Value (%)',
