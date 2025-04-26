@@ -547,6 +547,9 @@ export default function Home() {
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>Save Current Items as Plan</DialogTitle>
+                  <DialogDescription>
+                    Create a reusable meal plan from your current food items
+                  </DialogDescription>
                 </DialogHeader>
                 <div className="py-4">
                   <form 

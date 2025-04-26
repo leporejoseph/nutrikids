@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -78,7 +78,7 @@ export default function ReportHistoryModal({ isOpen, onClose, onSelectReport }: 
   
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-4xl">
+      <DialogContent className="max-w-4xl w-[calc(100vw-32px)] sm:w-[calc(100vw-48px)] md:w-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center">
             <FileText className="mr-2 h-5 w-5" />
@@ -136,9 +136,9 @@ export default function ReportHistoryModal({ isOpen, onClose, onSelectReport }: 
           </div>
           
           {/* Right side: Reports list */}
-          <div className="md:w-2/3">
+          <div className="md:w-2/3 w-full">
             <div className="bg-white rounded-lg border shadow-sm overflow-hidden">
-              <div className="p-3 border-b bg-gray-50 flex justify-between items-center">
+              <div className="p-3 border-b bg-gray-50 flex flex-wrap justify-between items-center">
                 <h3 className="font-medium flex items-center">
                   <CalendarIcon className="mr-2 h-4 w-4 text-purple-500" />
                   {selectedDate ? formatDate(format(selectedDate, 'yyyy-MM-dd')) : 'All Available Reports'}
@@ -146,7 +146,7 @@ export default function ReportHistoryModal({ isOpen, onClose, onSelectReport }: 
                 <span className="text-sm text-gray-500">{filteredReports.length} reports</span>
               </div>
               
-              <ScrollArea className="h-[350px]">
+              <ScrollArea className="h-[300px] md:h-[350px]">
                 {filteredReports.length === 0 ? (
                   <div className="p-8 text-center">
                     <FileText className="h-10 w-10 text-gray-300 mx-auto mb-3" />
@@ -159,19 +159,19 @@ export default function ReportHistoryModal({ isOpen, onClose, onSelectReport }: 
                     {filteredReports.map((item) => (
                       <div 
                         key={item.id}
-                        className="p-4 border rounded-md hover:border-purple-300 hover:bg-purple-50 cursor-pointer transition-all"
+                        className="p-3 border rounded-md hover:border-purple-300 hover:bg-purple-50 cursor-pointer transition-all"
                         onClick={() => handleSelectReport(item.report)}
                       >
                         <div className="flex justify-between items-start">
-                          <div className="space-y-2">
-                            <div className="flex items-center">
+                          <div className="space-y-2 pr-2">
+                            <div className="flex flex-wrap items-center gap-1">
                               <span className="font-medium">{formatDate(item.reportDate)}</span>
-                              <span className="ml-2 text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
+                              <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
                                 {formatTime(item.analysisDate)}
                               </span>
                             </div>
                             
-                            <div className="flex flex-wrap gap-3">
+                            <div className="flex flex-wrap gap-2">
                               <div className="flex items-center px-2 py-1 bg-blue-50 rounded text-sm">
                                 <TrendingUp className="w-3.5 h-3.5 mr-1.5 text-blue-500" />
                                 <span className="text-blue-700">Score: <span className="font-semibold">{item.nutritionScore}%</span></span>
@@ -189,7 +189,7 @@ export default function ReportHistoryModal({ isOpen, onClose, onSelectReport }: 
                           
                           <button
                             onClick={(e) => handleDeleteReport(item.id, e)}
-                            className="text-gray-400 hover:text-red-500 hover:bg-red-50 p-1.5 rounded-full transition-colors ml-2"
+                            className="text-gray-400 hover:text-red-500 hover:bg-red-50 p-1.5 rounded-full transition-colors flex-shrink-0"
                             title="Delete report"
                           >
                             <Trash2 className="h-5 w-5" />
