@@ -66,7 +66,8 @@ export default function FoodItemList({ items, onDelete, onUpdate, onAddFood, sel
   const [entryType, setEntryType] = useState<"food" | "drink" | "supplement">("food");
   const [childInfo, setChildInfo] = useState<ChildInfo | null>(null);
   const [selectedChildIds, setSelectedChildIds] = useState<string[]>([]);
-  const [isChildDropdownOpen, setIsChildDropdownOpen] = useState(false);
+  const [isAddChildDropdownOpen, setIsAddChildDropdownOpen] = useState(false);
+  const [isEditChildDropdownOpen, setIsEditChildDropdownOpen] = useState(false);
   
   // Load child information
   useEffect(() => {
@@ -360,7 +361,7 @@ export default function FoodItemList({ items, onDelete, onUpdate, onAddFood, sel
               
               <div 
                 className="p-3 border border-gray-300 rounded-md cursor-pointer flex items-center justify-between"
-                onClick={() => setIsChildDropdownOpen(!isChildDropdownOpen)}
+                onClick={() => setIsAddChildDropdownOpen(!isAddChildDropdownOpen)}
               >
                 <div className="flex-1 truncate">
                   {selectedChildIds.length === 0 ? (
@@ -379,11 +380,11 @@ export default function FoodItemList({ items, onDelete, onUpdate, onAddFood, sel
                     </div>
                   )}
                 </div>
-                <ChevronDown className={`h-4 w-4 transition-transform ${isChildDropdownOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`h-4 w-4 transition-transform ${isAddChildDropdownOpen ? 'rotate-180' : ''}`} />
               </div>
               
               {/* Dropdown menu */}
-              {isChildDropdownOpen && (
+              {isAddChildDropdownOpen && (
                 <div className="mt-1 p-2 bg-white border border-gray-200 rounded-md shadow-md z-10">
                   <div className="mb-2 px-2">
                     <div className="flex justify-between items-center">
@@ -434,7 +435,7 @@ export default function FoodItemList({ items, onDelete, onUpdate, onAddFood, sel
                     <button
                       type="button"
                       className="px-3 py-1 text-xs bg-primary text-white rounded hover:bg-primary/90"
-                      onClick={() => setIsChildDropdownOpen(false)}
+                      onClick={() => setIsAddChildDropdownOpen(false)}
                     >
                       Done
                     </button>
@@ -617,7 +618,7 @@ export default function FoodItemList({ items, onDelete, onUpdate, onAddFood, sel
                           
                           <div 
                             className="p-2 border border-gray-300 rounded-md cursor-pointer flex items-center justify-between text-sm"
-                            onClick={() => setIsChildDropdownOpen(!isChildDropdownOpen)}
+                            onClick={() => setIsEditChildDropdownOpen(!isEditChildDropdownOpen)}
                           >
                             <div className="flex-1 truncate">
                               {selectedChildIds.length === 0 ? (
@@ -636,11 +637,11 @@ export default function FoodItemList({ items, onDelete, onUpdate, onAddFood, sel
                                 </div>
                               )}
                             </div>
-                            <ChevronDown className={`h-4 w-4 transition-transform ${isChildDropdownOpen ? 'rotate-180' : ''}`} />
+                            <ChevronDown className={`h-4 w-4 transition-transform ${isEditChildDropdownOpen ? 'rotate-180' : ''}`} />
                           </div>
                           
                           {/* Dropdown menu */}
-                          {isChildDropdownOpen && (
+                          {isEditChildDropdownOpen && (
                             <div className="absolute mt-1 p-2 bg-white border border-gray-200 rounded-md shadow-md z-10">
                               <div className="mb-2 px-2">
                                 <div className="flex justify-between items-center">
@@ -687,6 +688,19 @@ export default function FoodItemList({ items, onDelete, onUpdate, onAddFood, sel
                                     </div>
                                   );
                                 })}
+                              </div>
+                              
+                              <div className="mt-2 flex justify-end">
+                                <button
+                                  type="button"
+                                  className="px-3 py-1 text-xs bg-primary text-white rounded hover:bg-primary/90"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setIsEditChildDropdownOpen(false);
+                                  }}
+                                >
+                                  Done
+                                </button>
                               </div>
                             </div>
                           )}
