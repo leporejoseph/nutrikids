@@ -31,14 +31,16 @@ export async function generateNutritionReport({
     });
 
     // Get the response text from the API response
-    const responseText = result.text;
-
+    if (!result.text) {
+      throw new Error("No response received from the API.");
+    }
+    
     try {
-      const parsedReport = JSON.parse(responseText);
+      const parsedReport = JSON.parse(result.text);
       return parsedReport as NutritionReport;
     } catch (jsonError) {
       console.error("Failed to parse Gemini response as JSON:", jsonError);
-      console.log("Raw response:", responseText);
+      console.log("Raw response:", result.text);
       throw new Error("Failed to parse nutrition data. Please try again.");
     }
   } catch (error) {
