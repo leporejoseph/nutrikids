@@ -95,9 +95,10 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
           // Save this change immediately
           const updatedSettings = {
             ...settingsForm.getValues(),
-            selectedModel: models[0].id
+            selectedModel: models[0].id,
+            darkMode: settings.darkMode // Keep the darkMode setting
           };
-          saveAppSettings(updatedSettings);
+          await saveAppSettings(updatedSettings);
         }
         
         // Don't show a toast for successful model updates - it's too frequent
@@ -203,12 +204,12 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
     <div className="fixed inset-0 z-20 overflow-y-auto">
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose}></div>
       
-      <div className="relative min-h-screen max-w-md mx-auto bg-white shadow-lg animate-in slide-in-from-right">
-        <div className="flex justify-between items-center p-4 border-b border-gray-200">
+      <div className="relative min-h-screen max-w-md mx-auto bg-background shadow-lg animate-in slide-in-from-right">
+        <div className="flex justify-between items-center p-4 border-b border-border">
           <h2 className="font-inter font-bold text-xl">Settings</h2>
           <button 
             onClick={onClose}
-            className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600"
+            className="p-2 rounded-full bg-muted hover:bg-muted/80 text-foreground"
             aria-label="Close settings"
           >
             <X className="h-4 w-4" />
@@ -218,7 +219,7 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
         <div className="p-4 pb-24 overflow-y-auto max-h-[calc(100vh-60px)]">
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* API Key Section */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+            <div className="bg-card rounded-lg shadow-sm border border-border p-4">
               <h3 className="font-semibold text-lg mb-3">Google Gemini API Settings</h3>
               <div className="space-y-4">
                 <Form {...settingsForm}>
@@ -303,12 +304,34 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                       </FormItem>
                     )}
                   />
+                  
+                  {/* Dark Mode Toggle */}
+                  <FormField
+                    control={settingsForm.control}
+                    name="darkMode"
+                    render={({ field }) => (
+                      <FormItem className="mt-4 flex flex-row items-center justify-between rounded-lg border p-3">
+                        <div className="space-y-0.5">
+                          <FormLabel className="font-medium">Dark Mode</FormLabel>
+                          <p className="text-xs text-gray-500">
+                            Toggle dark mode for the application
+                          </p>
+                        </div>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
                 </Form>
               </div>
             </div>
 
             {/* Child Information */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+            <div className="bg-card rounded-lg shadow-sm border border-border p-4">
               <h3 className="font-semibold text-lg mb-3">Child Information</h3>
               <div className="space-y-4">
                 <Form {...childInfoForm}>

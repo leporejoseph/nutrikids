@@ -102,6 +102,7 @@ export const DEFAULT_CHILD_INFO = {
 export const DEFAULT_APP_SETTINGS = {
   apiKey: "",
   selectedModel: "gemini-2.5-flash-preview-04-17",
+  darkMode: false,
 };
 
 // Images for visual appeal

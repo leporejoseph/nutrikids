@@ -304,7 +304,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen max-w-md mx-auto bg-white shadow-lg">
+    <div className="min-h-screen max-w-md mx-auto bg-background shadow-lg">
       <Header title="NutriKids" />
 
       <main className="p-4">
