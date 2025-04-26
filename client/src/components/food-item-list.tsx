@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FoodItem } from "@shared/schema";
 import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -86,6 +86,16 @@ export default function FoodItemList({ items, onDelete, onUpdate, onAddFood, sel
     },
   });
 
+  // Update unit when entry type changes
+  useEffect(() => {
+    const defaultUnit = 
+      entryType === "food" ? "piece" : 
+      entryType === "drink" ? "serving" : 
+      "pill";
+    
+    addForm.setValue("unit", defaultUnit);
+  }, [entryType, addForm]);
+
   const handleEdit = (item: FoodItem) => {
     setEditingId(item.id);
     form.reset({
@@ -101,8 +111,6 @@ export default function FoodItemList({ items, onDelete, onUpdate, onAddFood, sel
     onUpdate(id, values);
     setEditingId(null);
   };
-
-  // Use the getDefaultMealType function defined above
   
   // Format meal type to display the proper label
   const formatMealType = (mealType: string) => {
@@ -169,17 +177,157 @@ export default function FoodItemList({ items, onDelete, onUpdate, onAddFood, sel
     }
   };
 
+  // Render the Add Item form
+  const renderAddItemForm = () => (
+    <div className="p-3 border-t border-gray-200">
+      {/* Type Selection Buttons */}
+      <div className="mb-4">
+        <div className="flex gap-2">
+          <button
+            type="button"
+            className={`flex-1 py-2 px-3 rounded-md flex items-center justify-center gap-2 transition-colors ${
+              entryType === "food" 
+                ? "bg-green-100 border border-green-300 text-green-700" 
+                : "bg-gray-50 border border-gray-200 text-gray-700 hover:bg-gray-100"
+            }`}
+            onClick={() => setEntryType("food")}
+          >
+            <Apple className="h-4 w-4" />
+            <span>Food</span>
+          </button>
+          <button
+            type="button"
+            className={`flex-1 py-2 px-3 rounded-md flex items-center justify-center gap-2 transition-colors ${
+              entryType === "drink" 
+                ? "bg-purple-100 border border-purple-300 text-purple-700" 
+                : "bg-gray-50 border border-gray-200 text-gray-700 hover:bg-gray-100"
+            }`}
+            onClick={() => setEntryType("drink")}
+          >
+            <Coffee className="h-4 w-4" />
+            <span>Drink</span>
+          </button>
+          <button
+            type="button"
+            className={`flex-1 py-2 px-3 rounded-md flex items-center justify-center gap-2 transition-colors ${
+              entryType === "supplement" 
+                ? "bg-blue-100 border border-blue-300 text-blue-700" 
+                : "bg-gray-50 border border-gray-200 text-gray-700 hover:bg-gray-100"
+            }`}
+            onClick={() => setEntryType("supplement")}
+          >
+            <Pill className="h-4 w-4" />
+            <span>Supplement</span>
+          </button>
+        </div>
+      </div>
+      
+      {/* Form */}
+      <Form {...addForm}>
+        <form onSubmit={addForm.handleSubmit(handleAddItem)} className="space-y-4">
+          <FormField
+            control={addForm.control}
+            name="name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="font-medium">{getItemTypeLabel()}</FormLabel>
+                <FormControl>
+                  <Input 
+                    placeholder={getItemPlaceholder()}
+                    className="p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-accent focus:border-accent"
+                    {...field} 
+                  />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+
+          <div>
+            <FormLabel className="font-medium block mb-1">Quantity</FormLabel>
+            <div className="flex space-x-2">
+              <FormField
+                control={addForm.control}
+                name="quantity"
+                render={({ field }) => (
+                  <FormItem className="w-1/3">
+                    <FormControl>
+                      <Input 
+                        type="number" 
+                        min="0.25"
+                        step="0.25"
+                        className="p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-accent focus:border-accent"
+                        {...field}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={addForm.control}
+                name="unit"
+                render={({ field }) => (
+                  <FormItem className="w-2/3">
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger className="p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-accent focus:border-accent">
+                          <SelectValue placeholder="Select unit" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {getUnitsForType().map((unit) => (
+                          <SelectItem key={unit.value} value={unit.value}>
+                            {unit.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </FormItem>
+                )}
+              />
+            </div>
+          </div>
+
+          <FormField
+            control={addForm.control}
+            name="mealType"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="font-medium">Meal</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger className="p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-accent focus:border-accent">
+                      <SelectValue placeholder="Select meal type" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {MEAL_TYPES.map((meal) => (
+                      <SelectItem key={meal.value} value={meal.value}>
+                        {meal.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormItem>
+            )}
+          />
+
+          <Button 
+            type="submit" 
+            className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-3 px-4 rounded-md transition transform hover:scale-[1.02]"
+          >
+            <Plus className="mr-2 h-4 w-4" /> Add {entryType === "food" ? "Food" : entryType === "drink" ? "Drink" : "Supplement"}
+          </Button>
+        </form>
+      </Form>
+    </div>
+  );
+
   if (items.length === 0) {
     return (
       <div>
-        <div id="emptyFoodListMessage" className="text-center py-8 bg-gray-50 rounded-lg border border-gray-200 mb-4">
-          <img src={APP_IMAGES.fruits} alt="Empty food list" className="w-16 h-16 mx-auto mb-2 opacity-50 rounded-full" />
-          <p className="text-gray-500">No items added yet</p>
-          <p className="text-sm text-gray-400">Add food, drinks, or supplements to track nutrition</p>
-        </div>
-        
-        {/* Add new item row */}
-        <div className="bg-gray-50 rounded-lg border border-gray-200 overflow-hidden">
+        {/* Add your first item row - MOVED TO TOP */}
+        <div className="bg-gray-50 rounded-lg border border-gray-200 overflow-hidden mb-4">
           <button
             onClick={() => setIsAddingItem(!isAddingItem)}
             className="w-full p-3 flex items-center justify-between text-left hover:bg-gray-100 transition-colors"
@@ -195,150 +343,14 @@ export default function FoodItemList({ items, onDelete, onUpdate, onAddFood, sel
             )}
           </button>
           
-          {isAddingItem && (
-            <div className="p-3 border-t border-gray-200">
-              {/* Type Selection Buttons */}
-              <div className="mb-4">
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    className={`flex-1 py-2 px-3 rounded-md flex items-center justify-center gap-2 transition-colors ${
-                      entryType === "food" 
-                        ? "bg-green-100 border border-green-300 text-green-700" 
-                        : "bg-gray-50 border border-gray-200 text-gray-700 hover:bg-gray-100"
-                    }`}
-                    onClick={() => setEntryType("food")}
-                  >
-                    <Apple className="h-4 w-4" />
-                    <span>Food</span>
-                  </button>
-                  <button
-                    type="button"
-                    className={`flex-1 py-2 px-3 rounded-md flex items-center justify-center gap-2 transition-colors ${
-                      entryType === "drink" 
-                        ? "bg-purple-100 border border-purple-300 text-purple-700" 
-                        : "bg-gray-50 border border-gray-200 text-gray-700 hover:bg-gray-100"
-                    }`}
-                    onClick={() => setEntryType("drink")}
-                  >
-                    <Coffee className="h-4 w-4" />
-                    <span>Drink</span>
-                  </button>
-                  <button
-                    type="button"
-                    className={`flex-1 py-2 px-3 rounded-md flex items-center justify-center gap-2 transition-colors ${
-                      entryType === "supplement" 
-                        ? "bg-blue-100 border border-blue-300 text-blue-700" 
-                        : "bg-gray-50 border border-gray-200 text-gray-700 hover:bg-gray-100"
-                    }`}
-                    onClick={() => setEntryType("supplement")}
-                  >
-                    <Pill className="h-4 w-4" />
-                    <span>Supplement</span>
-                  </button>
-                </div>
-              </div>
-              
-              {/* Form */}
-              <Form {...addForm}>
-                <form onSubmit={addForm.handleSubmit(handleAddItem)} className="space-y-4">
-                  <FormField
-                    control={addForm.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="font-medium">{getItemTypeLabel()}</FormLabel>
-                        <FormControl>
-                          <Input 
-                            placeholder={getItemPlaceholder()}
-                            className="p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-accent focus:border-accent"
-                            {...field} 
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-
-                  <div>
-                    <FormLabel className="font-medium block mb-1">Quantity</FormLabel>
-                    <div className="flex space-x-2">
-                      <FormField
-                        control={addForm.control}
-                        name="quantity"
-                        render={({ field }) => (
-                          <FormItem className="w-1/3">
-                            <FormControl>
-                              <Input 
-                                type="number" 
-                                min="0.25"
-                                step="0.25"
-                                className="p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-accent focus:border-accent"
-                                {...field}
-                              />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={addForm.control}
-                        name="unit"
-                        render={({ field }) => (
-                          <FormItem className="w-2/3">
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                              <FormControl>
-                                <SelectTrigger className="p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-accent focus:border-accent">
-                                  <SelectValue placeholder="Select unit" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {getUnitsForType().map((unit) => (
-                                  <SelectItem key={unit.value} value={unit.value}>
-                                    {unit.label}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                  </div>
-
-                  <FormField
-                    control={addForm.control}
-                    name="mealType"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="font-medium">Meal</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger className="p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-accent focus:border-accent">
-                              <SelectValue placeholder="Select meal type" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {MEAL_TYPES.map((meal) => (
-                              <SelectItem key={meal.value} value={meal.value}>
-                                {meal.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </FormItem>
-                    )}
-                  />
-
-                  <Button 
-                    type="submit" 
-                    className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-3 px-4 rounded-md transition transform hover:scale-[1.02]"
-                  >
-                    <Plus className="mr-2 h-4 w-4" /> Add {entryType === "food" ? "Food" : entryType === "drink" ? "Drink" : "Supplement"}
-                  </Button>
-                </form>
-              </Form>
-            </div>
-          )}
+          {isAddingItem && renderAddItemForm()}
+        </div>
+        
+        {/* Empty state message */}
+        <div id="emptyFoodListMessage" className="text-center py-8 bg-gray-50 rounded-lg border border-gray-200">
+          <img src={APP_IMAGES.fruits} alt="Empty food list" className="w-16 h-16 mx-auto mb-2 opacity-50 rounded-full" />
+          <p className="text-gray-500">No items added yet</p>
+          <p className="text-sm text-gray-400">Add food, drinks, or supplements using the form above</p>
         </div>
       </div>
     );
@@ -363,150 +375,7 @@ export default function FoodItemList({ items, onDelete, onUpdate, onAddFood, sel
           )}
         </button>
         
-        {isAddingItem && (
-          <div className="p-3 border-t border-gray-200">
-            {/* Type Selection Buttons */}
-            <div className="mb-4">
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  className={`flex-1 py-2 px-3 rounded-md flex items-center justify-center gap-2 transition-colors ${
-                    entryType === "food" 
-                      ? "bg-green-100 border border-green-300 text-green-700" 
-                      : "bg-gray-50 border border-gray-200 text-gray-700 hover:bg-gray-100"
-                  }`}
-                  onClick={() => setEntryType("food")}
-                >
-                  <Apple className="h-4 w-4" />
-                  <span>Food</span>
-                </button>
-                <button
-                  type="button"
-                  className={`flex-1 py-2 px-3 rounded-md flex items-center justify-center gap-2 transition-colors ${
-                    entryType === "drink" 
-                      ? "bg-purple-100 border border-purple-300 text-purple-700" 
-                      : "bg-gray-50 border border-gray-200 text-gray-700 hover:bg-gray-100"
-                  }`}
-                  onClick={() => setEntryType("drink")}
-                >
-                  <Coffee className="h-4 w-4" />
-                  <span>Drink</span>
-                </button>
-                <button
-                  type="button"
-                  className={`flex-1 py-2 px-3 rounded-md flex items-center justify-center gap-2 transition-colors ${
-                    entryType === "supplement" 
-                      ? "bg-blue-100 border border-blue-300 text-blue-700" 
-                      : "bg-gray-50 border border-gray-200 text-gray-700 hover:bg-gray-100"
-                  }`}
-                  onClick={() => setEntryType("supplement")}
-                >
-                  <Pill className="h-4 w-4" />
-                  <span>Supplement</span>
-                </button>
-              </div>
-            </div>
-            
-            {/* Form */}
-            <Form {...addForm}>
-              <form onSubmit={addForm.handleSubmit(handleAddItem)} className="space-y-4">
-                <FormField
-                  control={addForm.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="font-medium">{getItemTypeLabel()}</FormLabel>
-                      <FormControl>
-                        <Input 
-                          placeholder={getItemPlaceholder()}
-                          className="p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-accent focus:border-accent"
-                          {...field} 
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-
-                <div>
-                  <FormLabel className="font-medium block mb-1">Quantity</FormLabel>
-                  <div className="flex space-x-2">
-                    <FormField
-                      control={addForm.control}
-                      name="quantity"
-                      render={({ field }) => (
-                        <FormItem className="w-1/3">
-                          <FormControl>
-                            <Input 
-                              type="number" 
-                              min="0.25"
-                              step="0.25"
-                              className="p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-accent focus:border-accent"
-                              {...field}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={addForm.control}
-                      name="unit"
-                      render={({ field }) => (
-                        <FormItem className="w-2/3">
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger className="p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-accent focus:border-accent">
-                                <SelectValue placeholder="Select unit" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {getUnitsForType().map((unit) => (
-                                <SelectItem key={unit.value} value={unit.value}>
-                                  {unit.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </div>
-
-                <FormField
-                  control={addForm.control}
-                  name="mealType"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="font-medium">Meal</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger className="p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-accent focus:border-accent">
-                            <SelectValue placeholder="Select meal type" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {MEAL_TYPES.map((meal) => (
-                            <SelectItem key={meal.value} value={meal.value}>
-                              {meal.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </FormItem>
-                  )}
-                />
-
-                <Button 
-                  type="submit" 
-                  className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-3 px-4 rounded-md transition transform hover:scale-[1.02]"
-                >
-                  <Plus className="mr-2 h-4 w-4" /> Add {entryType === "food" ? "Food" : entryType === "drink" ? "Drink" : "Supplement"}
-                </Button>
-              </form>
-            </Form>
-          </div>
-        )}
+        {isAddingItem && renderAddItemForm()}
       </li>
       
       {/* Existing items */}
