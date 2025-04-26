@@ -77,12 +77,16 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
         
         if (!modelExists && models.length > 0) {
           settingsForm.setValue("selectedModel", models[0].id);
+          
+          // Save this change immediately
+          const updatedSettings = {
+            ...settingsForm.getValues(),
+            selectedModel: models[0].id
+          };
+          saveAppSettings(updatedSettings);
         }
         
-        toast({
-          title: "Models Updated",
-          description: `Retrieved ${models.length} available Gemini models.`,
-        });
+        // Don't show a toast for successful model updates - it's too frequent
       }
     } catch (error) {
       console.error("Error fetching models:", error);
@@ -97,7 +101,23 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
   };
 
   const handleSaveSettings = (data: AppSettings) => {
+    // Make sure we're saving the latest model ID
+    const currentModel = data.selectedModel;
+    
+    // Validate model selection if we have available models loaded
+    if (availableModels.length > 0) {
+      const modelExists = availableModels.some(model => model.id === currentModel);
+      
+      // If model doesn't exist in our list, use the first available one
+      if (!modelExists) {
+        data.selectedModel = availableModels[0].id;
+      }
+    }
+    
+    // Save settings to local storage
     saveAppSettings(data);
+    
+    // Update app state
     setSettings(data);
     
     toast({

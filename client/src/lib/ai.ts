@@ -97,12 +97,24 @@ export async function generateNutritionReport({
       }
       
       try {
-        const parsedReport = JSON.parse(textResponse);
+        // First, try to clean up the response if it contains markdown code blocks
+        let jsonText = textResponse;
+        
+        // Remove any markdown code block markers (```json and ```)
+        if (jsonText.includes('```')) {
+          jsonText = jsonText.replace(/```json\n?/g, '').replace(/```\n?/g, '');
+        }
+        
+        // Attempt to parse the cleaned JSON
+        const parsedReport = JSON.parse(jsonText);
         return parsedReport as NutritionReport;
       } catch (jsonError) {
         console.error("Failed to parse Gemini response as JSON:", jsonError);
         console.log("Raw response:", textResponse);
-        throw new Error("Failed to parse nutrition data. The AI didn't return proper JSON. Please try again.");
+        
+        // Since this is a detailed error, provide more helpful guidance
+        const errorMsg = "There was a problem processing the AI response. Please try again or try using a different model.";
+        throw new Error(errorMsg);
       }
     } catch (apiError: any) {
       // Specific error handling for API issues
@@ -340,14 +352,16 @@ export async function fetchAvailableGeminiModels(apiKey: string): Promise<Gemini
       throw new Error("API key is required to fetch available models");
     }
     
-    // These are the current recommended Gemini models as of April 2025
-    // We're listing the most recent ones first
+    // These are the current available Gemini models as of April 2025
+    // We're listing the most recent ones first based on official documentation
     const currentModels: GeminiModel[] = [
+      { id: "gemini-2.5-pro-preview-03-25", name: "Gemini 2.5 Pro Preview" },
+      { id: "gemini-2.5-flash-preview-04-17", name: "Gemini 2.5 Flash Preview" },
+      { id: "gemini-2.0-flash", name: "Gemini 2.0 Flash" },
+      { id: "gemini-2.0-flash-lite", name: "Gemini 2.0 Flash-Lite" },
       { id: "gemini-1.5-pro", name: "Gemini 1.5 Pro" },
       { id: "gemini-1.5-flash", name: "Gemini 1.5 Flash" },
-      { id: "gemini-1.0-pro", name: "Gemini 1.0 Pro" },
-      { id: "gemini-pro", name: "Gemini Pro" },
-      { id: "gemini-pro-vision", name: "Gemini Pro Vision" }
+      { id: "gemini-1.5-flash-8b", name: "Gemini 1.5 Flash-8B" }
     ];
     
     // Simulate a delay as if we're fetching from the API
