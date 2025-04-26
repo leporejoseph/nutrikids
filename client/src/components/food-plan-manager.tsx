@@ -61,7 +61,7 @@ export default function FoodPlanManager({ currentItems, onLoadPlan, selectedChil
     },
   });
 
-  const handleSavePlan = (values: FoodPlanFormValues) => {
+  const handleSavePlan = async (values: FoodPlanFormValues) => {
     if (currentItems.length === 0) {
       toast({
         title: "No items to save",
@@ -72,19 +72,33 @@ export default function FoodPlanManager({ currentItems, onLoadPlan, selectedChil
     }
 
     try {
+      // Add childId to each food item if this is a child-specific plan
+      const itemsWithChildId = values.isChildSpecific && selectedChildId
+        ? currentItems.map(item => ({
+            ...item,
+            childId: selectedChildId
+          }))
+        : currentItems;
+      
+      // Create the new plan with childId if it's child-specific
       const newPlan: FoodPlan = {
         id: crypto.randomUUID(),
         name: values.name,
         description: values.description || "",
-        items: [...currentItems],
+        items: itemsWithChildId,
         isDefault: values.isDefault,
+        childId: values.isChildSpecific && selectedChildId ? selectedChildId : null,
         createdAt: Date.now(),
       };
       
-      saveFoodPlan(newPlan);
+      await saveFoodPlan(newPlan);
       
-      // Update local state
-      setPlans(getFoodPlans());
+      // Update local state with fresh data
+      const updatedPlans = await getFoodPlans();
+      const filteredPlans = updatedPlans.filter(plan => 
+        !plan.childId || plan.childId === selectedChildId
+      );
+      setPlans(filteredPlans);
       
       toast({
         title: "Plan saved",
@@ -104,10 +118,17 @@ export default function FoodPlanManager({ currentItems, onLoadPlan, selectedChil
     }
   };
 
-  const handleDeletePlan = (planId: string, planName: string) => {
+  const handleDeletePlan = async (planId: string, planName: string) => {
     try {
-      deleteFoodPlan(planId);
-      setPlans(getFoodPlans());
+      await deleteFoodPlan(planId);
+      
+      // Update plans list
+      const updatedPlans = await getFoodPlans();
+      const filteredPlans = updatedPlans.filter(plan => 
+        !plan.childId || plan.childId === selectedChildId
+      );
+      setPlans(filteredPlans);
+      
       toast({
         title: "Plan deleted",
         description: `"${planName}" has been deleted.`,
@@ -139,11 +160,18 @@ export default function FoodPlanManager({ currentItems, onLoadPlan, selectedChil
     }
   };
 
-  const handleToggleDefault = (plan: FoodPlan) => {
+  const handleToggleDefault = async (plan: FoodPlan) => {
     try {
       const updatedPlan = { ...plan, isDefault: !plan.isDefault };
-      saveFoodPlan(updatedPlan);
-      setPlans(getFoodPlans());
+      await saveFoodPlan(updatedPlan);
+      
+      // Update plans list
+      const updatedPlans = await getFoodPlans();
+      const filteredPlans = updatedPlans.filter(plan => 
+        !plan.childId || plan.childId === selectedChildId
+      );
+      setPlans(filteredPlans);
+      
       toast({
         title: updatedPlan.isDefault ? "Default plan set" : "Default removed",
         description: updatedPlan.isDefault 
@@ -233,6 +261,31 @@ export default function FoodPlanManager({ currentItems, onLoadPlan, selectedChil
                 )}
               />
               
+              {selectedChildId && (
+                <FormField
+                  control={form.control}
+                  name="isChildSpecific"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center space-x-3 space-y-0 rounded-md border p-4">
+                      <FormControl>
+                        <input
+                          type="checkbox"
+                          checked={field.value}
+                          onChange={field.onChange}
+                          className="h-4 w-4 text-primary rounded"
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel>Child-specific plan</FormLabel>
+                        <FormDescription>
+                          This plan will only be available for the selected child
+                        </FormDescription>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+              )}
+              
               <DialogFooter>
                 <Button type="submit">Save Plan</Button>
               </DialogFooter>
@@ -260,6 +313,11 @@ export default function FoodPlanManager({ currentItems, onLoadPlan, selectedChil
                     {plan.isDefault && (
                       <span className="ml-2 text-amber-500">
                         <Star className="h-4 w-4" />
+                      </span>
+                    )}
+                    {plan.childId && (
+                      <span className="ml-2 text-xs px-1.5 py-0.5 rounded-full bg-purple-100 text-purple-800">
+                        Child Plan
                       </span>
                     )}
                   </div>
