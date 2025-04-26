@@ -91,22 +91,31 @@ export default function ReportHistoryModal({ isOpen, onClose, onSelectReport }: 
         
         <div className="flex flex-col md:flex-row gap-6">
           {/* Left side: Calendar */}
-          <div className="md:w-1/3">
-            <div className="bg-white rounded-lg border shadow-sm p-4">
-              <h3 className="font-medium text-sm mb-3 text-gray-700">Select Date</h3>
-              <Calendar
-                mode="single"
-                selected={selectedDate}
-                onSelect={setSelectedDate}
-                className="rounded-md mx-auto"
-                disabled={(date) => {
-                  return !datesWithReports.some(d => 
-                    d.getDate() === date.getDate() && 
-                    d.getMonth() === date.getMonth() && 
-                    d.getFullYear() === date.getFullYear()
-                  );
-                }}
-              />
+          <div className="md:w-[280px] flex-none">
+            <div className="bg-white rounded-lg border shadow-sm p-3">
+              <h3 className="font-medium text-sm mb-2 text-gray-700">Select Date</h3>
+              <div className="flex justify-center">
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={setSelectedDate}
+                  className="rounded-md w-full"
+                  classNames={{
+                    root: "w-full",
+                    table: "w-full",
+                    month: "space-y-1",
+                    cell: "text-center p-0",
+                    day: "h-8 w-8 p-0 font-normal aria-selected:opacity-100"
+                  }}
+                  disabled={(date) => {
+                    return !datesWithReports.some(d => 
+                      d.getDate() === date.getDate() && 
+                      d.getMonth() === date.getMonth() && 
+                      d.getFullYear() === date.getFullYear()
+                    );
+                  }}
+                />
+              </div>
               <div className="mt-2 text-center">
                 <div className="text-xs text-gray-500 mb-2">
                   {datesWithReports.length} dates with reports

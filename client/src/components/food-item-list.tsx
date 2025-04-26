@@ -357,9 +357,9 @@ export default function FoodItemList({ items, onDelete, onUpdate, onAddFood, sel
   }
 
   return (
-    <ul className="space-y-2">
+    <div className="space-y-2">
       {/* Add new item row */}
-      <li className="bg-gray-50 rounded-lg border border-gray-200 overflow-hidden">
+      <div className="bg-gray-50 rounded-lg border border-gray-200 overflow-hidden">
         <button
           onClick={() => setIsAddingItem(!isAddingItem)}
           className="w-full p-3 flex items-center justify-between text-left hover:bg-gray-100 transition-colors"
@@ -376,151 +376,156 @@ export default function FoodItemList({ items, onDelete, onUpdate, onAddFood, sel
         </button>
         
         {isAddingItem && renderAddItemForm()}
-      </li>
+      </div>
       
-      {/* Existing items */}
-      {items.map((item) => (
-        <li 
-          key={item.id} 
-          className="food-item bg-white rounded-lg shadow-sm border border-gray-200 p-3 flex justify-between items-center"
-        >
-          {editingId === item.id ? (
-            <div className="w-full">
-              <Form {...form}>
-                <form className="space-y-2">
-                  <FormField
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <Input 
-                            className="w-full p-2 border border-gray-300 rounded-md mb-2"
-                            {...field}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
+      {/* Scrollable items list container */}
+      <div className={`${items.length > 4 ? 'max-h-[320px] overflow-y-auto pr-1 pb-2' : ''}`}>
+        <ul className="space-y-2">
+          {/* Existing items */}
+          {items.map((item) => (
+            <li 
+              key={item.id} 
+              className="food-item bg-white rounded-lg shadow-sm border border-gray-200 p-3 flex justify-between items-center"
+            >
+              {editingId === item.id ? (
+                <div className="w-full">
+                  <Form {...form}>
+                    <form className="space-y-2">
+                      <FormField
+                        control={form.control}
+                        name="name"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <Input 
+                                className="w-full p-2 border border-gray-300 rounded-md mb-2"
+                                {...field}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <div className="flex space-x-2">
+                        <FormField
+                          control={form.control}
+                          name="quantity"
+                          render={({ field }) => (
+                            <FormItem className="w-1/4">
+                              <FormControl>
+                                <Input 
+                                  type="number"
+                                  min="0.25"
+                                  step="0.25"
+                                  className="p-2 border border-gray-300 rounded-md"
+                                  {...field}
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={form.control}
+                          name="unit"
+                          render={({ field }) => (
+                            <FormItem className="w-1/3">
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                  <SelectTrigger className="p-2 border border-gray-300 rounded-md">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {FOOD_UNITS.map((unit) => (
+                                    <SelectItem key={unit.value} value={unit.value}>
+                                      {unit.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={form.control}
+                          name="mealType"
+                          render={({ field }) => (
+                            <FormItem className="w-1/3">
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                  <SelectTrigger className="p-2 border border-gray-300 rounded-md">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {MEAL_TYPES.map((meal) => (
+                                    <SelectItem key={meal.value} value={meal.value}>
+                                      {meal.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </form>
+                  </Form>
                   
+                  <div className="flex justify-end mt-2">
+                    <button 
+                      onClick={() => handleSave(item.id)}
+                      className="save-btn p-2 px-4 bg-green-600 hover:bg-green-700 text-white rounded-md flex items-center"
+                      aria-label="Save changes"
+                      type="button"
+                    >
+                      <Check className="h-4 w-4 mr-2" /> Save
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-center">
+                    <div className="mr-2">
+                      {item.type === "supplement" ? (
+                        <Pill className="h-4 w-4 text-blue-500" />
+                      ) : item.type === "drink" ? (
+                        <Coffee className="h-4 w-4 text-purple-500" />
+                      ) : (
+                        <Apple className="h-4 w-4 text-green-500" />
+                      )}
+                    </div>
+                    <div>
+                      <div className="font-medium">{item.name}</div>
+                      <div className="text-sm text-gray-500">
+                        {item.quantity} {item.unit} - {formatMealType(item.mealType)}
+                      </div>
+                    </div>
+                  </div>
                   <div className="flex space-x-2">
-                    <FormField
-                      control={form.control}
-                      name="quantity"
-                      render={({ field }) => (
-                        <FormItem className="w-1/4">
-                          <FormControl>
-                            <Input 
-                              type="number"
-                              min="0.25"
-                              step="0.25"
-                              className="p-2 border border-gray-300 rounded-md"
-                              {...field}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={form.control}
-                      name="unit"
-                      render={({ field }) => (
-                        <FormItem className="w-1/3">
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger className="p-2 border border-gray-300 rounded-md">
-                                <SelectValue />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {FOOD_UNITS.map((unit) => (
-                                <SelectItem key={unit.value} value={unit.value}>
-                                  {unit.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={form.control}
-                      name="mealType"
-                      render={({ field }) => (
-                        <FormItem className="w-1/3">
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger className="p-2 border border-gray-300 rounded-md">
-                                <SelectValue />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {MEAL_TYPES.map((meal) => (
-                                <SelectItem key={meal.value} value={meal.value}>
-                                  {meal.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </FormItem>
-                      )}
-                    />
+                    <button 
+                      onClick={() => handleEdit(item)}
+                      className="edit-btn p-2 text-gray-600 hover:text-secondary"
+                      aria-label="Edit food item"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </button>
+                    <button 
+                      onClick={() => onDelete(item.id)}
+                      className="delete-btn p-2 text-gray-600 hover:text-danger"
+                      aria-label="Delete food item"
+                    >
+                      <MinusCircle className="h-4 w-4" />
+                    </button>
                   </div>
-                </form>
-              </Form>
-              
-              <div className="flex justify-end mt-2">
-                <button 
-                  onClick={() => handleSave(item.id)}
-                  className="save-btn p-2 px-4 bg-green-600 hover:bg-green-700 text-white rounded-md flex items-center"
-                  aria-label="Save changes"
-                  type="button"
-                >
-                  <Check className="h-4 w-4 mr-2" /> Save
-                </button>
-              </div>
-            </div>
-          ) : (
-            <>
-              <div className="flex items-center">
-                <div className="mr-2">
-                  {item.type === "supplement" ? (
-                    <Pill className="h-4 w-4 text-blue-500" />
-                  ) : item.type === "drink" ? (
-                    <Coffee className="h-4 w-4 text-purple-500" />
-                  ) : (
-                    <Apple className="h-4 w-4 text-green-500" />
-                  )}
-                </div>
-                <div>
-                  <div className="font-medium">{item.name}</div>
-                  <div className="text-sm text-gray-500">
-                    {item.quantity} {item.unit} - {formatMealType(item.mealType)}
-                  </div>
-                </div>
-              </div>
-              <div className="flex space-x-2">
-                <button 
-                  onClick={() => handleEdit(item)}
-                  className="edit-btn p-2 text-gray-600 hover:text-secondary"
-                  aria-label="Edit food item"
-                >
-                  <Edit className="h-4 w-4" />
-                </button>
-                <button 
-                  onClick={() => onDelete(item.id)}
-                  className="delete-btn p-2 text-gray-600 hover:text-danger"
-                  aria-label="Delete food item"
-                >
-                  <MinusCircle className="h-4 w-4" />
-                </button>
-              </div>
-            </>
-          )}
-        </li>
-      ))}
-    </ul>
+                </>
+              )}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
   );
 }
