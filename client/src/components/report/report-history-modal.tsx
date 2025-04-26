@@ -4,9 +4,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ReportHistoryItem, NutritionReport } from "@shared/schema";
+import { ReportHistoryItem, NutritionReport, MultiChildReport } from "@shared/schema";
 import { getReportHistory, deleteReportFromHistory, clearReportHistory } from '@/lib/localStorage';
-import { FileText, Calendar as CalendarIcon, Trash2, TrendingUp, Zap } from 'lucide-react';
+import { FileText, Calendar as CalendarIcon, Trash2, TrendingUp, Zap, Users } from 'lucide-react';
 
 interface ReportHistoryModalProps {
   isOpen: boolean;
@@ -53,9 +53,33 @@ export default function ReportHistoryModal({ isOpen, onClose, onSelectReport }: 
     setFilteredReports(todaysReports.length > 0 ? todaysReports : history);
   };
   
-  const handleSelectReport = (report: NutritionReport) => {
-    onSelectReport(report);
-    onClose();
+  // Get first report from multi-child report, or return the single report
+  const getReportFromHistoryItem = (item: ReportHistoryItem): NutritionReport => {
+    if (item.isMultiChild && item.childReports) {
+      // Get the first child report from the multi-child report
+      const childIds = Object.keys(item.childReports);
+      if (childIds.length > 0) {
+        return item.childReports[childIds[0]];
+      }
+      // If no child reports found, return a default report structure
+      throw new Error("No child reports available");
+    } else if (item.report) {
+      // Return the single report
+      return item.report;
+    }
+    throw new Error("No report data available");
+  };
+  
+  const handleSelectReport = (item: ReportHistoryItem) => {
+    try {
+      // Get the appropriate report based on the item type
+      const report = getReportFromHistoryItem(item);
+      onSelectReport(report);
+      onClose();
+    } catch (error) {
+      console.error("Error selecting report:", error);
+      // Could show a toast message here
+    }
   };
   
   const handleDeleteReport = (id: string, e: React.MouseEvent) => {
@@ -74,6 +98,22 @@ export default function ReportHistoryModal({ isOpen, onClose, onSelectReport }: 
   const formatTime = (timestamp: number) => {
     const date = new Date(timestamp);
     return format(date, 'h:mm a');
+  };
+  
+  // Calculate average calories for multi-child reports
+  const getAverageCalories = (childReports: Record<string, NutritionReport>) => {
+    const reports = Object.values(childReports);
+    if (reports.length === 0) {
+      return { calories: 0, caloriesTarget: 0 };
+    }
+    
+    const totalCalories = reports.reduce((sum, report) => sum + (report.calories || 0), 0);
+    const totalTarget = reports.reduce((sum, report) => sum + (report.caloriesTarget || 0), 0);
+    
+    return {
+      calories: Math.round(totalCalories / reports.length),
+      caloriesTarget: Math.round(totalTarget / reports.length)
+    };
   };
   
   return (
@@ -178,47 +218,60 @@ export default function ReportHistoryModal({ isOpen, onClose, onSelectReport }: 
                   </div>
                 ) : (
                   <div className="grid gap-2 p-2 sm:p-3">
-                    {filteredReports.map((item) => (
-                      <div 
-                        key={item.id}
-                        className="p-2 sm:p-3 border rounded-md hover:border-purple-300 hover:bg-purple-50 cursor-pointer transition-all"
-                        onClick={() => handleSelectReport(item.report)}
-                      >
-                        <div className="flex justify-between items-start">
-                          <div className="space-y-1 sm:space-y-2 pr-2 flex-1 min-w-0">
-                            <div className="flex flex-wrap items-center gap-1">
-                              <span className="font-medium text-sm">{formatDate(item.reportDate)}</span>
-                              <span className="text-xs text-gray-500 bg-gray-100 px-1 sm:px-2 py-0.5 rounded truncate">
-                                {formatTime(item.analysisDate)}
-                              </span>
-                            </div>
-                            
-                            <div className="flex flex-wrap gap-1 sm:gap-2">
-                              <div className="flex items-center px-1.5 sm:px-2 py-0.5 sm:py-1 bg-blue-50 rounded text-xs sm:text-sm">
-                                <TrendingUp className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1 sm:mr-1.5 text-blue-500" />
-                                <span className="text-blue-700">Score: <span className="font-semibold">{item.nutritionScore}%</span></span>
+                    {filteredReports.map((item) => {
+                      // Get calorie and nutrition info based on report type
+                      const caloriesInfo = item.isMultiChild && item.childReports 
+                        ? getAverageCalories(item.childReports)
+                        : item.report ? { calories: item.report.calories, caloriesTarget: item.report.caloriesTarget } : { calories: 0, caloriesTarget: 0 };
+                      
+                      return (
+                        <div 
+                          key={item.id}
+                          className="p-2 sm:p-3 border rounded-md hover:border-purple-300 hover:bg-purple-50 cursor-pointer transition-all"
+                          onClick={() => handleSelectReport(item)}
+                        >
+                          <div className="flex justify-between items-start">
+                            <div className="space-y-1 sm:space-y-2 pr-2 flex-1 min-w-0">
+                              <div className="flex flex-wrap items-center gap-1">
+                                <span className="font-medium text-sm">{formatDate(item.reportDate)}</span>
+                                <span className="text-xs text-gray-500 bg-gray-100 px-1 sm:px-2 py-0.5 rounded truncate">
+                                  {formatTime(item.analysisDate)}
+                                </span>
+                                {item.isMultiChild && (
+                                  <span className="text-xs text-purple-600 bg-purple-50 px-1 sm:px-2 py-0.5 rounded flex items-center">
+                                    <Users className="w-3 h-3 mr-1" />
+                                    Family Report
+                                  </span>
+                                )}
                               </div>
                               
-                              <div className="flex items-center px-1.5 sm:px-2 py-0.5 sm:py-1 bg-amber-50 rounded text-xs sm:text-sm">
-                                <Zap className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1 sm:mr-1.5 text-amber-500" />
-                                <span className="text-amber-700">
-                                  Cal: <span className="font-semibold">{item.report.calories}</span>
-                                  /<span className="text-amber-600">{item.report.caloriesTarget}</span>
-                                </span>
+                              <div className="flex flex-wrap gap-1 sm:gap-2">
+                                <div className="flex items-center px-1.5 sm:px-2 py-0.5 sm:py-1 bg-blue-50 rounded text-xs sm:text-sm">
+                                  <TrendingUp className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1 sm:mr-1.5 text-blue-500" />
+                                  <span className="text-blue-700">Score: <span className="font-semibold">{item.nutritionScore}%</span></span>
+                                </div>
+                                
+                                <div className="flex items-center px-1.5 sm:px-2 py-0.5 sm:py-1 bg-amber-50 rounded text-xs sm:text-sm">
+                                  <Zap className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1 sm:mr-1.5 text-amber-500" />
+                                  <span className="text-amber-700">
+                                    Cal: <span className="font-semibold">{caloriesInfo.calories}</span>
+                                    /<span className="text-amber-600">{caloriesInfo.caloriesTarget}</span>
+                                  </span>
+                                </div>
                               </div>
                             </div>
+                            
+                            <button
+                              onClick={(e) => handleDeleteReport(item.id, e)}
+                              className="text-gray-400 hover:text-red-500 hover:bg-red-50 p-1 sm:p-1.5 rounded-full transition-colors flex-shrink-0"
+                              title="Delete report"
+                            >
+                              <Trash2 className="h-4 w-4 sm:h-5 sm:w-5" />
+                            </button>
                           </div>
-                          
-                          <button
-                            onClick={(e) => handleDeleteReport(item.id, e)}
-                            className="text-gray-400 hover:text-red-500 hover:bg-red-50 p-1 sm:p-1.5 rounded-full transition-colors flex-shrink-0"
-                            title="Delete report"
-                          >
-                            <Trash2 className="h-4 w-4 sm:h-5 sm:w-5" />
-                          </button>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </ScrollArea>
