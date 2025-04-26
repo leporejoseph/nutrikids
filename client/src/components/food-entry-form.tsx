@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FoodItem } from "@shared/schema";
-import { FOOD_UNITS, MEAL_TYPES } from "@/lib/constants";
+import { FOOD_UNITS, DRINK_UNITS, MEAL_TYPES } from "@/lib/constants";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -8,13 +8,14 @@ import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Apple, Coffee, Pill, Save, FileInput } from "lucide-react";
 
 const foodEntrySchema = z.object({
   name: z.string().min(1, "Food name is required"),
   quantity: z.coerce.number().min(0.25, "Quantity must be at least 0.25"),
   unit: z.string().min(1, "Unit is required"),
   mealType: z.string().min(1, "Meal type is required"),
+  type: z.enum(["food", "drink", "supplement"]).default("food"),
 });
 
 type FoodEntryFormValues = z.infer<typeof foodEntrySchema>;
@@ -25,6 +26,9 @@ interface FoodEntryFormProps {
 }
 
 export default function FoodEntryForm({ onAddFood, selectedDate }: FoodEntryFormProps) {
+  const [itemType, setItemType] = useState<"food" | "drink" | "supplement">("food");
+  const [currentUnits, setCurrentUnits] = useState(FOOD_UNITS);
+
   const form = useForm<FoodEntryFormValues>({
     resolver: zodResolver(foodEntrySchema),
     defaultValues: {
@@ -32,8 +36,28 @@ export default function FoodEntryForm({ onAddFood, selectedDate }: FoodEntryForm
       quantity: 1,
       unit: "piece",
       mealType: "breakfast",
+      type: "food",
     },
   });
+
+  // Update units when item type changes
+  useEffect(() => {
+    // Update the unit options based on item type
+    if (itemType === "drink") {
+      setCurrentUnits(DRINK_UNITS);
+      // Set a default drink unit
+      form.setValue("unit", "ml");
+    } else if (itemType === "supplement") {
+      setCurrentUnits(FOOD_UNITS);
+      form.setValue("unit", "piece");
+    } else {
+      setCurrentUnits(FOOD_UNITS);
+      form.setValue("unit", "piece");
+    }
+    
+    // Set the type value in the form
+    form.setValue("type", itemType);
+  }, [itemType, form]);
 
   const onSubmit = (values: FoodEntryFormValues) => {
     const currentDate = selectedDate || new Date().toISOString().split('T')[0];
@@ -59,7 +83,59 @@ export default function FoodEntryForm({ onAddFood, selectedDate }: FoodEntryForm
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6 relative">
+      {/* Type selector at the top of the form */}
+      <div className="flex justify-between items-center mb-4">
+        <div className="flex space-x-2">
+          <Button 
+            type="button"
+            onClick={() => setItemType("food")}
+            variant={itemType === "food" ? "default" : "outline"}
+            className="flex items-center"
+          >
+            <Apple className="mr-1 h-4 w-4" /> Food
+          </Button>
+          <Button 
+            type="button"
+            onClick={() => setItemType("drink")}
+            variant={itemType === "drink" ? "default" : "outline"}
+            className="flex items-center"
+          >
+            <Coffee className="mr-1 h-4 w-4" /> Drink
+          </Button>
+          <Button 
+            type="button"
+            onClick={() => setItemType("supplement")}
+            variant={itemType === "supplement" ? "default" : "outline"}
+            className="flex items-center"
+          >
+            <Pill className="mr-1 h-4 w-4" /> Supplement
+          </Button>
+        </div>
+        
+        {/* Plan save/load buttons */}
+        <div className="plan-buttons flex space-x-2">
+          <Button 
+            type="button" 
+            variant="outline" 
+            size="icon" 
+            className="h-8 w-8"
+            title="Save current items as plan"
+          >
+            <Save className="h-4 w-4" />
+          </Button>
+          <Button 
+            type="button" 
+            variant="outline" 
+            size="icon" 
+            className="h-8 w-8"
+            title="Load saved plan"
+          >
+            <FileInput className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+      
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <FormField
@@ -67,10 +143,18 @@ export default function FoodEntryForm({ onAddFood, selectedDate }: FoodEntryForm
             name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="font-medium">Food Item</FormLabel>
+                <FormLabel className="font-medium">
+                  {itemType === "drink" ? "Drink" : itemType === "supplement" ? "Supplement" : "Food"} Name
+                </FormLabel>
                 <FormControl>
                   <Input 
-                    placeholder="e.g., Apple, Chicken nuggets, etc." 
+                    placeholder={
+                      itemType === "drink" 
+                        ? "e.g., Orange juice, Milk, etc." 
+                        : itemType === "supplement" 
+                          ? "e.g., Vitamin D, Iron, etc."
+                          : "e.g., Apple, Chicken nuggets, etc."
+                    }
                     className="p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-accent focus:border-accent"
                     {...field} 
                   />
@@ -112,7 +196,7 @@ export default function FoodEntryForm({ onAddFood, selectedDate }: FoodEntryForm
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {FOOD_UNITS.map((unit) => (
+                        {currentUnits.map((unit) => (
                           <SelectItem key={unit.value} value={unit.value}>
                             {unit.label}
                           </SelectItem>
@@ -177,7 +261,8 @@ export default function FoodEntryForm({ onAddFood, selectedDate }: FoodEntryForm
             type="submit" 
             className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-3 px-4 rounded-md transition transform hover:scale-[1.02]"
           >
-            <Plus className="mr-2 h-4 w-4" /> Add Food Item
+            <Plus className="mr-2 h-4 w-4" /> 
+            {itemType === "drink" ? "Add Drink" : itemType === "supplement" ? "Add Supplement" : "Add Food"}
           </Button>
         </form>
       </Form>
