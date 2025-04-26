@@ -371,71 +371,71 @@ export default function FoodPlanManager({ currentItems, onLoadPlan, selectedChil
             </div>
           ) : (
             filteredPlans.map((plan) => (
-            <div 
-              key={plan.id} 
-              className="bg-white rounded-lg border border-gray-200 p-3 transition hover:shadow-md"
-            >
-              <div className="flex justify-between items-center">
-                <div>
-                  <div className="font-medium flex items-center">
-                    {plan.name}
-                    {plan.isDefault && (
-                      <span className="ml-2 text-amber-500">
+              <div 
+                key={plan.id} 
+                className="bg-white rounded-lg border border-gray-200 p-3 transition hover:shadow-md"
+              >
+                <div className="flex justify-between items-center">
+                  <div>
+                    <div className="font-medium flex items-center">
+                      {plan.name}
+                      {plan.isDefault && (
+                        <span className="ml-2 text-amber-500">
+                          <Star className="h-4 w-4" />
+                        </span>
+                      )}
+                      {plan.childId && (
+                        <span className="ml-2 text-xs px-1.5 py-0.5 rounded-full bg-purple-100 text-purple-800">
+                          Child Plan
+                        </span>
+                      )}
+                    </div>
+                    {plan.description && (
+                      <p className="text-sm text-gray-500 line-clamp-1">{plan.description}</p>
+                    )}
+                    <div className="text-xs text-gray-400 mt-1">
+                      {plan.items.length} items • {new Date(plan.createdAt).toLocaleDateString()}
+                    </div>
+                  </div>
+                  
+                  <div className="flex space-x-1">
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => handleToggleDefault(plan)}
+                      title={plan.isDefault ? "Remove as default" : "Set as default"}
+                      className="text-amber-500 hover:text-amber-600 hover:bg-amber-50"
+                    >
+                      {plan.isDefault ? (
+                        <StarOff className="h-4 w-4" />
+                      ) : (
                         <Star className="h-4 w-4" />
-                      </span>
-                    )}
-                    {plan.childId && (
-                      <span className="ml-2 text-xs px-1.5 py-0.5 rounded-full bg-purple-100 text-purple-800">
-                        Child Plan
-                      </span>
-                    )}
+                      )}
+                    </Button>
+                    
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => handleLoadPlan(plan)}
+                      title="Load this plan"
+                      className="text-blue-500 hover:text-blue-600 hover:bg-blue-50"
+                    >
+                      <BookmarkCheck className="h-4 w-4" />
+                    </Button>
+                    
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => handleDeletePlan(plan.id, plan.name)}
+                      title="Delete this plan"
+                      className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
-                  {plan.description && (
-                    <p className="text-sm text-gray-500 line-clamp-1">{plan.description}</p>
-                  )}
-                  <div className="text-xs text-gray-400 mt-1">
-                    {plan.items.length} items • {new Date(plan.createdAt).toLocaleDateString()}
-                  </div>
-                </div>
-                
-                <div className="flex space-x-1">
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    onClick={() => handleToggleDefault(plan)}
-                    title={plan.isDefault ? "Remove as default" : "Set as default"}
-                    className="text-amber-500 hover:text-amber-600 hover:bg-amber-50"
-                  >
-                    {plan.isDefault ? (
-                      <StarOff className="h-4 w-4" />
-                    ) : (
-                      <Star className="h-4 w-4" />
-                    )}
-                  </Button>
-                  
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    onClick={() => handleLoadPlan(plan)}
-                    title="Load this plan"
-                    className="text-blue-500 hover:text-blue-600 hover:bg-blue-50"
-                  >
-                    <BookmarkCheck className="h-4 w-4" />
-                  </Button>
-                  
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    onClick={() => handleDeletePlan(plan.id, plan.name)}
-                    title="Delete this plan"
-                    className="text-red-500 hover:text-red-600 hover:bg-red-50"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
                 </div>
               </div>
-            </div>
-          ))
+            ))
           )}
         </div>
       ) : (

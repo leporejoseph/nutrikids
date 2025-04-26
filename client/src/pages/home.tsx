@@ -191,12 +191,13 @@ export default function Home() {
       return;
     }
     
-    // Convert FoodItems to match FoodPlan items structure (with childId as string|null)
-    const itemsWithNullableChildId = filteredItems.map(item => {
+    // Convert FoodItems to match FoodPlan items structure
+    const itemsWithChildId = filteredItems.map(item => {
+      // Make sure childId is properly handled as string|undefined (not null)
       const { childId, ...rest } = item;
       return {
         ...rest,
-        childId: childId || null
+        childId // This should already be string|undefined
       };
     });
     
@@ -204,7 +205,7 @@ export default function Home() {
       id: crypto.randomUUID(),
       name,
       description,
-      items: itemsWithNullableChildId,
+      items: itemsWithChildId,
       createdAt: Date.now(),
       isDefault,
       // Associate with the selected child if child-specific is selected
