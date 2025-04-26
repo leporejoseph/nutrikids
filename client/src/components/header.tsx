@@ -19,7 +19,7 @@ export default function Header({ title }: HeaderProps) {
           </div>
           <button 
             onClick={() => setShowSettings(true)}
-            className="p-2 bg-purple-700 rounded hover:bg-purple-800 transition-colors flex items-center"
+            className="w-10 h-10 flex items-center justify-center rounded-full bg-purple-700 hover:bg-purple-800 transition-colors"
             aria-label="Open settings"
           >
             <svg 
@@ -30,13 +30,12 @@ export default function Header({ title }: HeaderProps) {
               strokeWidth="2" 
               strokeLinecap="round" 
               strokeLinejoin="round" 
-              className="w-5 h-5 mr-1"
+              className="w-5 h-5"
             >
               <line x1="3" y1="12" x2="21" y2="12"></line>
               <line x1="3" y1="6" x2="21" y2="6"></line>
               <line x1="3" y1="18" x2="21" y2="18"></line>
             </svg>
-            <span className="text-sm">Settings</span>
           </button>
         </div>
       </header>
