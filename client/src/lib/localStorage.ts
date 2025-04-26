@@ -1,6 +1,26 @@
 import { FoodItem, ChildInfo, AppSettings, NutritionReport } from "@shared/schema";
 import { DEFAULT_APP_SETTINGS, DEFAULT_CHILD_INFO, STORAGE_KEYS } from "./constants";
 
+// Simple encryption function for API keys
+function encryptApiKey(key: string): string {
+  // Basic encryption using Base64 and reversing the string for session storage
+  if (!key) return '';
+  const reversed = key.split('').reverse().join('');
+  return window.btoa(reversed);
+}
+
+// Decryption function for API keys
+function decryptApiKey(encryptedKey: string): string {
+  if (!encryptedKey) return '';
+  try {
+    const decoded = window.atob(encryptedKey);
+    return decoded.split('').reverse().join('');
+  } catch (error) {
+    console.error("Error decrypting API key:", error);
+    return '';
+  }
+}
+
 // Food items management
 export function getFoodItems(): FoodItem[] {
   try {
@@ -53,15 +73,19 @@ export function getAppSettings(): AppSettings {
     const settings = localStorage.getItem(STORAGE_KEYS.APP_SETTINGS);
     const parsedSettings = settings ? JSON.parse(settings) : DEFAULT_APP_SETTINGS;
     
-    // If API key exists, check its expiration
-    if (parsedSettings.apiKey && parsedSettings.apiKeyTimestamp) {
+    // If encrypted API key exists, decrypt it
+    if (parsedSettings.encryptedApiKey && parsedSettings.apiKeyTimestamp) {
       const oneYearInMs = 365 * 24 * 60 * 60 * 1000;
       const currentTime = new Date().getTime();
       
       if (currentTime - parsedSettings.apiKeyTimestamp > oneYearInMs) {
         // API key has expired, clear it
         parsedSettings.apiKey = "";
+        delete parsedSettings.encryptedApiKey;
         saveAppSettings(parsedSettings);
+      } else {
+        // Decrypt API key
+        parsedSettings.apiKey = decryptApiKey(parsedSettings.encryptedApiKey);
       }
     }
     
@@ -74,15 +98,19 @@ export function getAppSettings(): AppSettings {
 
 export function saveAppSettings(settings: AppSettings): void {
   try {
-    // If the API key is being updated, add a timestamp
-    if (settings.apiKey) {
-      settings = {
-        ...settings,
-        apiKeyTimestamp: new Date().getTime()
-      };
-    }
+    const settingsToSave = { ...settings } as AppSettings & { encryptedApiKey?: string, apiKeyTimestamp?: number };
     
-    localStorage.setItem(STORAGE_KEYS.APP_SETTINGS, JSON.stringify(settings));
+    // If the API key is being updated, encrypt it and add a timestamp
+    if (settings.apiKey) {
+      settingsToSave.encryptedApiKey = encryptApiKey(settings.apiKey);
+      settingsToSave.apiKeyTimestamp = new Date().getTime();
+      
+      // For local storage safety, create a new object without the API key
+      const { apiKey, ...settingsWithoutApiKey } = settingsToSave;
+      localStorage.setItem(STORAGE_KEYS.APP_SETTINGS, JSON.stringify(settingsWithoutApiKey));
+    } else {
+      localStorage.setItem(STORAGE_KEYS.APP_SETTINGS, JSON.stringify(settingsToSave));
+    }
     
     // Apply dark mode if enabled
     if (settings.darkMode) {

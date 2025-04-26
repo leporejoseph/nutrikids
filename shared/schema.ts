@@ -42,10 +42,12 @@ export type ChildInfo = z.infer<typeof childInfoSchema>;
 
 // App Settings Schema
 export const appSettingsSchema = z.object({
-  apiKey: z.string(),
-  selectedModel: z.string(),
-  darkMode: z.boolean(),
-  notifications: z.boolean(),
+  apiKey: z.string().optional().default(""),
+  selectedModel: z.string().optional().default("gemini-2.5-flash"),
+  darkMode: z.boolean().optional().default(false),
+  notifications: z.boolean().optional().default(false),
+  encryptedApiKey: z.string().optional(),
+  apiKeyTimestamp: z.number().optional(),
 });
 
 export type AppSettings = z.infer<typeof appSettingsSchema>;

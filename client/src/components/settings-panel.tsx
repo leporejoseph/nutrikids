@@ -210,7 +210,7 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="">Select</SelectItem>
+                              <SelectItem value="not-specified">Select</SelectItem>
                               <SelectItem value="male">Male</SelectItem>
                               <SelectItem value="female">Female</SelectItem>
                               <SelectItem value="other">Other</SelectItem>
