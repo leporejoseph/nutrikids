@@ -372,6 +372,10 @@ export default function Home() {
         }
       }
       
+      // Update the report history state
+      const updatedHistory = await getReportHistory();
+      setReportHistory(updatedHistory);
+      
       setReportError(null);
       
       // Refresh report history after saving
