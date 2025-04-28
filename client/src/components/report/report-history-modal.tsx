@@ -47,9 +47,15 @@ export default function ReportHistoryModal({ isOpen, onClose, onSelectReport }: 
   const loadReportHistory = () => {
     const history = getReportHistory();
     setReportHistory(history);
-    // Initialize filtered reports to today's date if available, or all reports
+    
+    // Always set the selected date to today
+    setSelectedDate(new Date());
+    
+    // Initialize filtered reports to today's date
     const today = format(new Date(), 'yyyy-MM-dd');
     const todaysReports = history.filter(item => item.reportDate === today);
+    
+    // If there are today's reports, show them; otherwise show all reports
     setFilteredReports(todaysReports.length > 0 ? todaysReports : history);
   };
   

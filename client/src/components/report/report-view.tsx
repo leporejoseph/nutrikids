@@ -39,6 +39,7 @@ export default function NutritionReportView({ report, isLoading, onBack, error }
     }
   }, [error]);
 
+  // Display for error or no report
   if (!report && !isLoading) {
     return (
       <div className="py-10 text-center">
@@ -62,6 +63,8 @@ export default function NutritionReportView({ report, isLoading, onBack, error }
         ) : (
           <p className="text-lg">No report data available.</p>
         )}
+        
+        {/* Back button is handled by the parent component to avoid duplication */}
       </div>
     );
   }

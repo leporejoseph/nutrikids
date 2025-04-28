@@ -3,6 +3,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ReportView from "./report-view";
 import { NutritionReport, MultiChildReport, ChildInfo } from "@shared/schema";
 import { Badge } from "@/components/ui/badge";
+// Renamed the import to avoid naming collision
+import NutritionReportView from "./report-view";
 
 interface MultiChildReportTabsProps {
   multiChildReport: MultiChildReport;
