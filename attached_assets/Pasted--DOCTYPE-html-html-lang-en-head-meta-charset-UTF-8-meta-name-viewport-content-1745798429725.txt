@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DOB Calendar Picker</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600&display=swap');
+        
+        body {
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f5f7fa;
+            color: #1d1d1f;
+            letter-spacing: -0.01em;
+        }
+        
+        .calendar-container {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+            width: 360px;
+            padding: 24px;
+            overflow: hidden;
+        }
+        
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+        
+        .date-selectors {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 28px;
+            align-items: center;
+        }
+        
+        select {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 8px;
+            background-color: #f5f5f7;
+            font-size: 15px;
+            font-weight: 500;
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2212%22%20height%3D%227%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M1%201l5%205%205-5%22%20stroke%3D%22%23555%22%20stroke-width%3D%222%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            padding-right: 30px;
+            transition: background-color 0.2s ease;
+        }
+        
+        select:focus {
+            outline: none;
+            background-color: #e8e8ed;
+        }
+        
+        .month-selector {
+            width: 45%;
+        }
+        
+        .year-selector {
+            width: 30%;
+        }
+        
+        .year-navigation {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .year-jump {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f5f5f7;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            color: #007aff;
+        }
+        
+        .year-jump:hover {
+            background-color: #e8e8ed;
+            transform: scale(1.05);
+        }
+        
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .calendar-day-header {
+            text-align: center;
+            font-weight: 600;
+            font-size: 13px;
+            color: #86868b;
+            padding-bottom: 12px;
+            text-transform: uppercase;
+        }
+        
+        .calendar-day {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 400;
+            transition: all 0.15s ease;
+        }
+        
+        .calendar-day:hover:not(.empty):not(.selected) {
+            background-color: #f5f5f7;
+            transform: scale(1.05);
+        }
+        
+        .empty {
+            cursor: default;
+        }
+        
+        .today {
+            border: 1px solid #007aff;
+            color: #007aff;
+            font-weight: 500;
+        }
+        
+        .selected {
+            background-color: #007aff;
+            color: white;
+            font-weight: 500;
+            transform: scale(1.05);
+        }
+        
+        .selected-date {
+            margin-top: 24px;
+            padding: 16px;
+            background-color: #f5f5f7;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 500;
+            text-align: center;
+            color: #1d1d1f;
+            letter-spacing: 0.5px;
+        }
+        
+        .quick-year-navigation {
+            margin-top: 24px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+        
+        .era-button {
+            padding: 10px 8px;
+            background-color: #f5f5f7;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            text-align: center;
+            transition: all 0.2s ease;
+            color: #007aff;
+        }
+        
+        .era-button:hover {
+            background-color: #e8e8ed;
+            transform: translateY(-2px);
+        }
+        
+        h2 {
+            margin: 0;
+            color: #1d1d1f;
+            font-size: 20px;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+        }
+    </style>
+</head>
+<body>
+    <div class="calendar-container">
+        <div class="calendar-header">
+            <h2>Date of Birth</h2>
+        </div>
+        
+        <div class="date-selectors">
+            <select class="month-selector" id="month-selector">
+                <option value="0">January</option>
+                <option value="1">February</option>
+                <option value="2">March</option>
+                <option value="3">April</option>
+                <option value="4">May</option>
+                <option value="5">June</option>
+                <option value="6">July</option>
+                <option value="7">August</option>
+                <option value="8">September</option>
+                <option value="9">October</option>
+                <option value="10">November</option>
+                <option value="11">December</option>
+            </select>
+            
+            <div class="year-navigation">
+                <button class="year-jump" id="year-prev">−</button>
+                <select class="year-selector" id="year-selector"></select>
+                <button class="year-jump" id="year-next">+</button>
+            </div>
+        </div>
+        
+        <div class="calendar-grid" id="calendar-grid">
+            <!-- Calendar days will be generated here -->
+        </div>
+        
+        <div class="quick-year-navigation">
+            <button class="era-button" data-year="2020">2020s</button>
+            <button class="era-button" data-year="2000">2000s</button>
+            <button class="era-button" data-year="1990">1990s</button>
+            <button class="era-button" data-year="1980">1980s</button>
+            <button class="era-button" data-year="1970">1970s</button>
+            <button class="era-button" data-year="1960">1960s</button>
+            <button class="era-button" data-year="1950">1950s</button>
+            <button class="era-button" data-year="1940">1940s</button>
+        </div>
+        
+        <div class="selected-date" id="selected-date">
+            No date selected
+        </div>
+    </div>
+
+    <script>
+        // Initialize current date
+        const currentDate = new Date();
+        let selectedDate = null;
+        
+        // DOM elements
+        const monthSelector = document.getElementById('month-selector');
+        const yearSelector = document.getElementById('year-selector');
+        const calendarGrid = document.getElementById('calendar-grid');
+        const selectedDateDisplay = document.getElementById('selected-date');
+        const yearPrev = document.getElementById('year-prev');
+        const yearNext = document.getElementById('year-next');
+        const eraButtons = document.querySelectorAll('.era-button');
+        
+        // Initialize year selector (from 100 years ago to current year)
+        function initYearSelector() {
+            const currentYear = currentDate.getFullYear();
+            const startYear = currentYear - 100;
+            
+            // Clear existing options first
+            yearSelector.innerHTML = '';
+            
+            for (let year = currentYear; year >= startYear; year--) {
+                const option = document.createElement('option');
+                option.value = year;
+                option.textContent = year;
+                yearSelector.appendChild(option);
+            }
+            
+            // Set current year minus 30 as default (assuming adult user)
+            monthSelector.value = currentDate.getMonth();
+            yearSelector.value = currentYear - 30;
+        }
+        
+        // Generate calendar days for the selected month and year
+        function generateCalendar() {
+            calendarGrid.innerHTML = '';
+            
+            // Add day headers
+            const daysOfWeek = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+            daysOfWeek.forEach(day => {
+                const dayHeader = document.createElement('div');
+                dayHeader.className = 'calendar-day-header';
+                dayHeader.textContent = day;
+                calendarGrid.appendChild(dayHeader);
+            });
+            
+            const month = parseInt(monthSelector.value);
+            const year = parseInt(yearSelector.value);
+            
+            // First day of the month
+            const firstDayOfMonth = new Date(year, month, 1);
+            const lastDayOfMonth = new Date(year, month + 1, 0);
+            
+            // Add empty cells for days before the first day of the month
+            for (let i = 0; i < firstDayOfMonth.getDay(); i++) {
+                const emptyDay = document.createElement('div');
+                emptyDay.className = 'calendar-day empty';
+                calendarGrid.appendChild(emptyDay);
+            }
+            
+            // Add days of the month
+            for (let day = 1; day <= lastDayOfMonth.getDate(); day++) {
+                const dayElement = document.createElement('div');
+                dayElement.className = 'calendar-day';
+                dayElement.textContent = day;
+                
+                // Check if this day is today
+                const thisDate = new Date(year, month, day);
+                if (
+                    thisDate.getDate() === currentDate.getDate() &&
+                    thisDate.getMonth() === currentDate.getMonth() &&
+                    thisDate.getFullYear() === currentDate.getFullYear()
+                ) {
+                    dayElement.classList.add('today');
+                }
+                
+                // Check if this day is selected
+                if (selectedDate && 
+                    day === selectedDate.getDate() && 
+                    month === selectedDate.getMonth() && 
+                    year === selectedDate.getFullYear()) {
+                    dayElement.classList.add('selected');
+                }
+                
+                // Add click event
+                dayElement.addEventListener('click', () => {
+                    // Remove selected class from all days
+                    document.querySelectorAll('.calendar-day.selected').forEach(el => {
+                        el.classList.remove('selected');
+                    });
+                    
+                    // Add selected class to clicked day
+                    dayElement.classList.add('selected');
+                    
+                    // Update selected date
+                    selectedDate = new Date(year, month, day);
+                    updateSelectedDateDisplay();
+                });
+                
+                calendarGrid.appendChild(dayElement);
+            }
+        }
+        
+        // Update the selected date display
+        function updateSelectedDateDisplay() {
+            if (selectedDate) {
+                // Format date as MM/DD/YYYY
+                const formattedDate = `${selectedDate.getMonth() + 1}/${selectedDate.getDate()}/${selectedDate.getFullYear()}`;
+                selectedDateDisplay.textContent = `Selected: ${formattedDate}`;
+            } else {
+                selectedDateDisplay.textContent = 'No date selected';
+            }
+        }
+        
+        // Initialize the calendar
+        initYearSelector();
+        generateCalendar();
+        
+        // Event listeners
+        monthSelector.addEventListener('change', generateCalendar);
+        yearSelector.addEventListener('change', generateCalendar);
+        
+        // Year quick navigation
+        yearPrev.addEventListener('click', () => {
+            const currentYear = parseInt(yearSelector.value);
+            const newYear = currentYear - 10;
+            if (yearSelector.querySelector(`option[value="${newYear}"]`)) {
+                yearSelector.value = newYear;
+                generateCalendar();
+            }
+        });
+        
+        yearNext.addEventListener('click', () => {
+            const currentYear = parseInt(yearSelector.value);
+            const newYear = currentYear + 10;
+            if (yearSelector.querySelector(`option[value="${newYear}"]`)) {
+                yearSelector.value = newYear;
+                generateCalendar();
+            }
+        });
+        
+        // Era buttons
+        eraButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const targetYear = button.getAttribute('data-year');
+                yearSelector.value = targetYear;
+                generateCalendar();
+            });
+        });
+    </script>
+</body>
+</html>

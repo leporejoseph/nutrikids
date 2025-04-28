@@ -7,7 +7,6 @@ import { fetchAvailableGeminiModels, GeminiModel } from "@/lib/ai";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format, parseISO } from "date-fns";
-import { DayPicker } from "react-day-picker";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -16,7 +15,7 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
+import { DateOfBirthPicker } from "@/components/date-of-birth-picker";
 import { cn } from "@/lib/utils";
 
 interface SettingsPanelProps {
@@ -403,44 +402,20 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                                       </div>
                                       
                                       <div className="grid grid-cols-2 gap-4 mb-4">
-                                        {/* Date of Birth Field - Updated with consistent styling */}
+                                        {/* Date of Birth Field - Using DateOfBirthPicker */}
                                         <div>
                                           <FormLabel className="font-medium block mb-2">Date of Birth</FormLabel>
-                                          <div className="relative">
-                                            <Popover>
-                                              <PopoverTrigger asChild>
-                                                <Button
-                                                  variant="outline"
-                                                  size="sm"
-                                                  className={cn(
-                                                    "w-full h-10 justify-start text-left font-normal border border-gray-300 rounded-md",
-                                                    !child.dateOfBirth ? "text-muted-foreground" : "text-foreground"
-                                                  )}
-                                                >
-                                                  <CalendarIcon className="mr-2 h-4 w-4" />
-                                                  {child.dateOfBirth ? format(parseISO(child.dateOfBirth), 'PPP') : <span>Choose date</span>}
-                                                </Button>
-                                              </PopoverTrigger>
-                                              <PopoverContent className="w-auto p-0" align="start">
-                                                <Calendar
-                                                  mode="single"
-                                                  selected={child.dateOfBirth ? parseISO(child.dateOfBirth) : undefined}
-                                                  onSelect={(date) => {
-                                                    const newChildren = [...field.value];
-                                                    newChildren[index] = {
-                                                      ...newChildren[index],
-                                                      dateOfBirth: date ? format(date, 'yyyy-MM-dd') : null
-                                                    };
-                                                    childInfoForm.setValue('children', newChildren);
-                                                  }}
-                                                  fromYear={1990}
-                                                  toYear={new Date().getFullYear()}
-                                                  disabled={{ after: new Date() }}
-                                                  initialFocus
-                                                />
-                                              </PopoverContent>
-                                            </Popover>
-                                          </div>
+                                          <DateOfBirthPicker
+                                            date={child.dateOfBirth ? parseISO(child.dateOfBirth) : undefined}
+                                            onSelect={(date: Date | undefined) => {
+                                              const newChildren = [...field.value];
+                                              newChildren[index] = {
+                                                ...newChildren[index],
+                                                dateOfBirth: date ? format(date, 'yyyy-MM-dd') : null
+                                              };
+                                              childInfoForm.setValue('children', newChildren);
+                                            }}
+                                          />
                                         </div>
                                         
                                         {/* Gender Field - Updated for consistent heights */}
