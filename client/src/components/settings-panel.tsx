@@ -401,48 +401,46 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                                         />
                                       </div>
                                       
-                                      <div className="grid grid-cols-2 gap-4 mb-4">
-                                        {/* Date of Birth Field - Using DateOfBirthPicker */}
-                                        <div>
-                                          <FormLabel className="font-medium block mb-2">Date of Birth</FormLabel>
-                                          <DateOfBirthPicker
-                                            date={child.dateOfBirth ? parseISO(child.dateOfBirth) : undefined}
-                                            onSelect={(date: Date | undefined) => {
-                                              const newChildren = [...field.value];
-                                              newChildren[index] = {
-                                                ...newChildren[index],
-                                                dateOfBirth: date ? format(date, 'yyyy-MM-dd') : null
-                                              };
-                                              childInfoForm.setValue('children', newChildren);
-                                            }}
-                                          />
-                                        </div>
+                                      {/* Date of Birth Field - On its own line */}
+                                      <div className="mb-4">
+                                        <FormLabel className="font-medium block mb-2">Date of Birth</FormLabel>
+                                        <DateOfBirthPicker
+                                          date={child.dateOfBirth ? parseISO(child.dateOfBirth) : undefined}
+                                          onSelect={(date: Date | undefined) => {
+                                            const newChildren = [...field.value];
+                                            newChildren[index] = {
+                                              ...newChildren[index],
+                                              dateOfBirth: date ? format(date, 'yyyy-MM-dd') : null
+                                            };
+                                            childInfoForm.setValue('children', newChildren);
+                                          }}
+                                        />
+                                      </div>
                                         
-                                        {/* Gender Field - Updated for consistent heights */}
-                                        <div>
-                                          <FormLabel className="font-medium block mb-2">Gender</FormLabel>
-                                          <Select 
-                                            value={child.gender}
-                                            onValueChange={(value) => {
-                                              const newChildren = [...field.value];
-                                              newChildren[index] = {
-                                                ...newChildren[index],
-                                                gender: value
-                                              };
-                                              childInfoForm.setValue('children', newChildren);
-                                            }}
-                                          >
-                                            <SelectTrigger className="w-full h-10 p-2 px-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-accent focus:border-accent">
-                                              <SelectValue placeholder="Select" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                              <SelectItem value="not-specified">Select</SelectItem>
-                                              <SelectItem value="male">Male</SelectItem>
-                                              <SelectItem value="female">Female</SelectItem>
-                                              <SelectItem value="other">Other</SelectItem>
-                                            </SelectContent>
-                                          </Select>
-                                        </div>
+                                      {/* Gender Field - On its own line */}
+                                      <div className="mb-4">
+                                        <FormLabel className="font-medium block mb-2">Gender</FormLabel>
+                                        <Select 
+                                          value={child.gender}
+                                          onValueChange={(value) => {
+                                            const newChildren = [...field.value];
+                                            newChildren[index] = {
+                                              ...newChildren[index],
+                                              gender: value
+                                            };
+                                            childInfoForm.setValue('children', newChildren);
+                                          }}
+                                        >
+                                          <SelectTrigger className="w-full h-10 p-2 px-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-accent focus:border-accent">
+                                            <SelectValue placeholder="Select" />
+                                          </SelectTrigger>
+                                          <SelectContent>
+                                            <SelectItem value="not-specified">Select</SelectItem>
+                                            <SelectItem value="male">Male</SelectItem>
+                                            <SelectItem value="female">Female</SelectItem>
+                                            <SelectItem value="other">Other</SelectItem>
+                                          </SelectContent>
+                                        </Select>
                                       </div>
                                       
                                       {/* Weight with unit selection - Improved layout */}

@@ -252,7 +252,10 @@ export function DateOfBirthPicker({ date, onSelect, className }: DateOfBirthPick
               {buttonContent}
             </Button>
           </DialogTrigger>
-          <DialogContent className="p-0 max-w-[350px] rounded-lg">
+          <DialogContent className="p-0 max-w-[350px] rounded-lg" aria-describedby="dob-dialog-description">
+            <div id="dob-dialog-description" className="sr-only">
+              Select a date of birth from the calendar
+            </div>
             <CalendarPickerContent isDialog={true} />
           </DialogContent>
         </Dialog>
