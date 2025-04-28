@@ -62,16 +62,6 @@ export default function NutritionReportView({ report, isLoading, onBack, error }
         ) : (
           <p className="text-lg">No report data available.</p>
         )}
-        
-        {/* Only show back button if explicitly needed and no parent handles it */}
-        {onBack && typeof onBack === 'function' && onBack.toString() !== '() => {}' && (
-          <button
-            onClick={onBack}
-            className="mt-4 inline-flex items-center px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" /> Back to Food Entry
-          </button>
-        )}
       </div>
     );
   }
