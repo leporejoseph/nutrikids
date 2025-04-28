@@ -83,16 +83,13 @@ export function DateOfBirthPicker({ date, onSelect, className }: DateOfBirthPick
     { value: "11", label: "December" },
   ]
 
-  // Common decades for quick navigation
+  // Common decades for quick navigation (one row, starting from 1980s)
   const decades = [
+    { label: "2020s", year: 2020 },
     { label: "2010s", year: 2010 },
     { label: "2000s", year: 2000 },
     { label: "1990s", year: 1990 },
     { label: "1980s", year: 1980 },
-    { label: "1970s", year: 1970 },
-    { label: "1960s", year: 1960 },
-    { label: "1950s", year: 1950 },
-    { label: "1940s", year: 1940 },
   ]
 
   const handleMonthChange = (value: string) => {
@@ -186,7 +183,7 @@ export function DateOfBirthPicker({ date, onSelect, className }: DateOfBirthPick
         </div>
         
         {/* Decade quick jumps */}
-        <div className="grid grid-cols-4 gap-1 mb-2">
+        <div className="grid grid-cols-5 gap-1 mb-2">
           {decades.map((decade) => (
             <Button
               key={decade.year}
