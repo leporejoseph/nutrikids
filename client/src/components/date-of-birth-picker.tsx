@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react"
 import { format, isValid, set, addYears, subYears } from "date-fns"
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight } from "lucide-react"
+import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
@@ -8,6 +8,13 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 import { 
   Select, 
   SelectContent, 
@@ -16,6 +23,7 @@ import {
   SelectValue 
 } from "@/components/ui/select"
 import { Calendar } from "@/components/ui/calendar"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 interface DateOfBirthPickerProps {
   date: Date | undefined
@@ -111,109 +119,162 @@ export function DateOfBirthPicker({ date, onSelect, className }: DateOfBirthPick
     setCalendarView(newDate)
   }
 
+  const isMobile = useIsMobile();
+  
+  // Calendar picker content shared between desktop (popover) and mobile (dialog)
+  const CalendarPickerContent = ({ isDialog = false }: { isDialog?: boolean }) => (
+    <>
+      <div className={cn("p-3 border-b border-border", isDialog && "pb-2")}>
+        {isDialog && (
+          <div className="flex justify-between items-center mb-3">
+            <DialogTitle className="text-base font-semibold">Date of Birth</DialogTitle>
+            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setIsOpen(false)}>
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
+        
+        {!isDialog && (
+          <div className="flex justify-between items-center mb-2">
+            <div className="text-sm font-medium">Date of Birth</div>
+          </div>
+        )}
+        
+        {/* Month/Year selectors */}
+        <div className="flex gap-2 mb-2">
+          <Select value={selectedMonth} onValueChange={handleMonthChange}>
+            <SelectTrigger className={cn("h-9", isDialog ? "w-[120px]" : "w-[130px]")}>
+              <SelectValue placeholder="Month" />
+            </SelectTrigger>
+            <SelectContent>
+              {months.map((month) => (
+                <SelectItem key={month.value} value={month.value}>
+                  {month.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          
+          <div className="flex items-center">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-9 w-9"
+              onClick={() => jumpYear(10)}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Select value={selectedYear} onValueChange={handleYearChange}>
+              <SelectTrigger className={cn("h-9", isDialog ? "w-[90px]" : "w-[100px]")}>
+                <SelectValue placeholder="Year" />
+              </SelectTrigger>
+              <SelectContent>
+                {generateYearsArray().map((year) => (
+                  <SelectItem key={year} value={year.toString()}>
+                    {year}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-9 w-9"
+              onClick={() => jumpYear(-10)}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+        
+        {/* Decade quick jumps */}
+        <div className="grid grid-cols-4 gap-1 mb-2">
+          {decades.map((decade) => (
+            <Button
+              key={decade.year}
+              variant="outline"
+              size="sm"
+              className="h-8 text-xs"
+              onClick={() => jumpToDecade(decade.year)}
+            >
+              {decade.label}
+            </Button>
+          ))}
+        </div>
+      </div>
+      
+      {/* Calendar */}
+      <Calendar
+        mode="single"
+        selected={selectedDate}
+        onSelect={(date) => {
+          handleDateChange(date);
+          if (isDialog) setIsOpen(false);
+        }}
+        defaultMonth={calendarView}
+        month={calendarView}
+        onMonthChange={setCalendarView}
+        disabled={{ after: new Date() }}
+        initialFocus
+        captionLayout="buttons"
+      />
+    </>
+  );
+
+  // For dialog state in mobile view
+  const [isOpen, setIsOpen] = useState(false);
+
+  const buttonContent = (
+    <>
+      <CalendarIcon className="mr-2 h-4 w-4" />
+      {selectedDate && isValid(selectedDate) ? (
+        format(selectedDate, "PPP")
+      ) : (
+        <span>Choose date</span>
+      )}
+    </>
+  );
+
+  // Use Dialog on mobile, Popover on desktop
   return (
     <div className={cn("relative", className)}>
-      <Popover>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            size="sm"
-            className={cn(
-              "w-full h-10 justify-start text-left font-normal border border-gray-300 rounded-md",
-              !selectedDate ? "text-muted-foreground" : "text-foreground"
-            )}
-          >
-            <CalendarIcon className="mr-2 h-4 w-4" />
-            {selectedDate && isValid(selectedDate) ? (
-              format(selectedDate, "PPP")
-            ) : (
-              <span>Choose date</span>
-            )}
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="start">
-          <div className="p-3 border-b border-border">
-            <div className="flex justify-between items-center mb-2">
-              <div className="text-sm font-medium">Date of Birth</div>
-            </div>
-            
-            {/* Month/Year selectors */}
-            <div className="flex gap-2 mb-2">
-              <Select value={selectedMonth} onValueChange={handleMonthChange}>
-                <SelectTrigger className="w-[130px] h-8">
-                  <SelectValue placeholder="Month" />
-                </SelectTrigger>
-                <SelectContent>
-                  {months.map((month) => (
-                    <SelectItem key={month.value} value={month.value}>
-                      {month.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              
-              <div className="flex items-center">
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="h-8 w-8"
-                  onClick={() => jumpYear(10)}
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <Select value={selectedYear} onValueChange={handleYearChange}>
-                  <SelectTrigger className="w-[100px] h-8">
-                    <SelectValue placeholder="Year" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {generateYearsArray().map((year) => (
-                      <SelectItem key={year} value={year.toString()}>
-                        {year}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="h-8 w-8"
-                  onClick={() => jumpYear(-10)}
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-            
-            {/* Decade quick jumps */}
-            <div className="grid grid-cols-4 gap-1 mb-2">
-              {decades.map((decade) => (
-                <Button
-                  key={decade.year}
-                  variant="outline"
-                  size="sm"
-                  className="h-7 text-xs"
-                  onClick={() => jumpToDecade(decade.year)}
-                >
-                  {decade.label}
-                </Button>
-              ))}
-            </div>
-          </div>
-          
-          {/* Calendar */}
-          <Calendar
-            mode="single"
-            selected={selectedDate}
-            onSelect={handleDateChange}
-            defaultMonth={calendarView}
-            month={calendarView}
-            onMonthChange={setCalendarView}
-            disabled={{ after: new Date() }}
-            initialFocus
-            captionLayout="buttons"
-          />
-        </PopoverContent>
-      </Popover>
+      {isMobile ? (
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+          <DialogTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              className={cn(
+                "w-full h-10 justify-start text-left font-normal border border-gray-300 rounded-md",
+                !selectedDate ? "text-muted-foreground" : "text-foreground"
+              )}
+            >
+              {buttonContent}
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="p-0 max-w-[350px] rounded-lg">
+            <CalendarPickerContent isDialog={true} />
+          </DialogContent>
+        </Dialog>
+      ) : (
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              className={cn(
+                "w-full h-10 justify-start text-left font-normal border border-gray-300 rounded-md",
+                !selectedDate ? "text-muted-foreground" : "text-foreground"
+              )}
+            >
+              {buttonContent}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <CalendarPickerContent />
+          </PopoverContent>
+        </Popover>
+      )}
     </div>
   )
 }

@@ -432,7 +432,7 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                                               childInfoForm.setValue('children', newChildren);
                                             }}
                                           >
-                                            <SelectTrigger className="w-full h-10 border border-gray-300 rounded-md focus:ring-2 focus:ring-accent focus:border-accent">
+                                            <SelectTrigger className="w-full h-10 p-2 px-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-accent focus:border-accent">
                                               <SelectValue placeholder="Select" />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -480,7 +480,7 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                                                 childInfoForm.setValue('children', newChildren);
                                               }}
                                             >
-                                              <SelectTrigger className="w-full h-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-accent focus:border-accent">
+                                              <SelectTrigger className="w-full h-10 p-2 px-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-accent focus:border-accent">
                                                 <SelectValue />
                                               </SelectTrigger>
                                               <SelectContent>
@@ -526,7 +526,7 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                                                 childInfoForm.setValue('children', newChildren);
                                               }}
                                             >
-                                              <SelectTrigger className="w-full h-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-accent focus:border-accent">
+                                              <SelectTrigger className="w-full h-10 p-2 px-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-accent focus:border-accent">
                                                 <SelectValue />
                                               </SelectTrigger>
                                               <SelectContent>
