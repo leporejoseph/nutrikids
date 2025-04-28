@@ -128,9 +128,7 @@ export function DateOfBirthPicker({ date, onSelect, className }: DateOfBirthPick
         {isDialog && (
           <div className="flex justify-between items-center mb-3">
             <DialogTitle className="text-base font-semibold">Date of Birth</DialogTitle>
-            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setIsOpen(false)}>
-              <X className="h-4 w-4" />
-            </Button>
+            {/* Removed custom close button as DialogContent already has one */}
           </div>
         )}
         
@@ -252,7 +250,7 @@ export function DateOfBirthPicker({ date, onSelect, className }: DateOfBirthPick
               {buttonContent}
             </Button>
           </DialogTrigger>
-          <DialogContent className="p-0 max-w-[350px] rounded-lg" aria-describedby="dob-dialog-description">
+          <DialogContent className="p-0 max-w-[350px] rounded-lg pr-0" aria-describedby="dob-dialog-description">
             <div id="dob-dialog-description" className="sr-only">
               Select a date of birth from the calendar
             </div>
